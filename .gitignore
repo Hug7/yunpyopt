@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# C++ extension module built by yun/BUILD_PY.sh
+src/yunpy/_core.*.so

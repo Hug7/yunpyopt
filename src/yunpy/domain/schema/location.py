@@ -384,23 +384,26 @@ class WorkEffect:
 
     Attributes:
         location_code: 站点编码，引用 Location.code。
+        activity_type: 动作编码，支持{PICK, DROP}。
         dimension_code: 维度编码，引用 Dimension.code。
         per_hour_process_quantity: 每小时处理量（单位/小时），最大 4 位小数。
     """
 
     location_code: str
+    activity_type: str
     dimension_code: str
     per_hour_process_quantity: float
 
     def __repr__(self) -> str:
         cls = type(self).__name__
         return (
-            f"{cls}(location_code={self.location_code!r}, dimension_code={self.dimension_code!r})"
+            f"{cls}(location_code={self.location_code!r}, activity_type={self.activity_type!r}, dimension_code={self.dimension_code!r})"
         )
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             'LocationCode': self.location_code,
+            'ActivityType': self.activity_type,
             'DimensionCode': self.dimension_code,
             'PerHourProcessQuantity': self.per_hour_process_quantity,
         }
@@ -409,13 +412,14 @@ class WorkEffect:
     def empty_dict() -> Dict[str, Any]:
         return {
             'LocationCode': "",
+            'ActivityType': "",
             'DimensionCode': "",
             'PerHourProcessQuantity': "",
         }
 
     @staticmethod
     def columns() -> List[str]:
-        return ['LocationCode', 'DimensionCode', 'PerHourProcessQuantity']
+        return ['LocationCode', 'ActivityType', 'DimensionCode', 'PerHourProcessQuantity']
 
     @staticmethod
     def table_name() -> str:
@@ -426,9 +430,11 @@ class WorkEffect:
             return False
         if self.location_code != o.location_code:
             return False
+        if self.activity_type != o.activity_type:
+            return False
         if self.dimension_code != o.dimension_code:
             return False
         return True
 
     def __hash__(self):
-        return hash((self.location_code, self.dimension_code))
+        return hash((self.location_code, self.activity_type, self.dimension_code))

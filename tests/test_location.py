@@ -67,6 +67,7 @@ class TestWorkEffect:
     def test_construct(self) -> None:
         we = WorkEffect(
             location_code="WH001",
+            activity_type="PICK",
             dimension_code="WEIGHT",
             per_hour_process_quantity=100.0,
         )

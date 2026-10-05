@@ -533,7 +533,7 @@ class VehicleModelManager:
         for vehicle_model in tmp_vehicle_models:
             res_vehicle_models.append(vehicle_model.to_dict())
 
-        pd.DataFrame.from_dict(res_vehicle_models).to_csv(f'{root_path}/{VehicleModel.table_name()}.csv', )
+        pd.DataFrame.from_dict(res_vehicle_models).to_csv(f'{root_path}/{VehicleModel.table_name()}.csv', index=False)
 
         # to vehicle model dimension value csv
         vehicle_model_dimension_value_file_path = f'{root_path}/{VehicleModelDimensionValue.table_name()}.csv'
