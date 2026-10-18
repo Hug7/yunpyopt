@@ -32,7 +32,7 @@ def solve(
     """求解一个案例目录，返回产物文件路径。
 
     Args:
-        case_dir: 案例目录，需包含 22 个场景 CSV 与人工编写的 ``strategy.lua``，
+        case_dir: 案例目录，需包含 22 个场景 CSV 与人工编写的 ``Strategy.lua``，
             且必须可写（求解会在其下创建 ``output/<request_id>/``）。
         log_dir: 额外的日志目录。不传时该项关闭，日志仍会写到产物目录下。
         log_level: 日志等级，无法识别时 C++ 侧退化为 ``info``。
@@ -45,11 +45,11 @@ def solve(
         整条链路，此时 ``infeasible`` 有值而 ``loads`` 为 ``None``。
 
     Raises:
-        YunSolverError: 场景读取失败、``strategy.lua`` 缺失或求解过程抛异常。
+        YunSolverError: 场景读取失败、``Strategy.lua`` 缺失或求解过程抛异常。
 
     Known behaviour:
         ALNS 阶段没有把最优解写回 workspace，导出的车次是 KNN 构造解，
-        因此 ``strategy.lua`` 里的 ``max_iter`` 不影响输出。
+        因此 ``Strategy.lua`` 里的 ``max_iter`` 不影响输出。
     """
     case_dir = os.path.abspath(case_dir)
     try:

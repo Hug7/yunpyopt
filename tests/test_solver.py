@@ -48,9 +48,9 @@ def test_solve_repeated_is_safe(case_dir: Path) -> None:
 
 
 def test_missing_strategy_lua_raises(tmp_path: Path) -> None:
-    """负例：缺少 strategy.lua 时抛 YunSolverError，并保留 C++ 原始消息。"""
+    """负例：缺少 Strategy.lua 时抛 YunSolverError，并保留 C++ 原始消息。"""
     case_dir = tmp_path / "case_missing_lua"
-    shutil.copytree(_CASE_DIR, case_dir, ignore=shutil.ignore_patterns("output", "strategy.lua"))
+    shutil.copytree(_CASE_DIR, case_dir, ignore=shutil.ignore_patterns("output", "Strategy.lua"))
 
     with pytest.raises(YunSolverError) as exc_info:
         solve(str(case_dir))
