@@ -1,8 +1,8 @@
-"""Tests for yunpy.domain.schema.route."""
+"""Tests for yunpyopt.domain.schema.route."""
 
 from __future__ import annotations
 
-from yunpy.domain.schema.network import DistMatrix
+from yunpyopt.domain.schema.network import DistMatrix
 
 
 class TestDistMatrix:

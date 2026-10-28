@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, Any, List
+from typing import Any
 
 from .table import Table
 
@@ -26,24 +26,24 @@ class VehicleModel(Table):
         cls = type(self).__name__
         return f"{cls}(code={self.code!r}, name={self.name!r})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'Code': self.code,
-            'Name': self.name if self.name is not None else "",
-            'DistMatrixCode': self.dist_matrix_code,
+            "Code": self.code,
+            "Name": self.name if self.name is not None else "",
+            "DistMatrixCode": self.dist_matrix_code,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'Code': "",
-            'Name': "",
-            'DistMatrixCode': "",
+            "Code": "",
+            "Name": "",
+            "DistMatrixCode": "",
         }
 
     @staticmethod
     def table_name() -> str:
-        return 'VehicleModel'
+        return "VehicleModel"
 
     def __lt__(self, other):
         if not isinstance(other, VehicleModel):
@@ -70,37 +70,34 @@ class VehicleModelDimensionValue:
 
     def __repr__(self) -> str:
         cls = type(self).__name__
-        return (
-            f"{cls}(vehicle_model_code={self.vehicle_model_code!r}, "
-            f"dimension_code={self.dimension_code!r})"
-        )
+        return f"{cls}(vehicle_model_code={self.vehicle_model_code!r}, dimension_code={self.dimension_code!r})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'VehicleModelCode': self.vehicle_model_code,
-            'DimensionCode': self.dimension_code,
-            'DimensionValue': self.dimension_value,
+            "VehicleModelCode": self.vehicle_model_code,
+            "DimensionCode": self.dimension_code,
+            "DimensionValue": self.dimension_value,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'VehicleModelCode': "",
-            'DimensionCode': "",
-            'DimensionValue': "",
+            "VehicleModelCode": "",
+            "DimensionCode": "",
+            "DimensionValue": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
-        return ['VehicleModelCode', 'DimensionCode', 'DimensionValue']
+    def columns() -> list[str]:
+        return ["VehicleModelCode", "DimensionCode", "DimensionValue"]
 
     @staticmethod
     def table_name() -> str:
-        return 'VehicleModelDimensionValue'
+        return "VehicleModelDimensionValue"
 
     def __eq__(self, o) -> bool:
         if not isinstance(o, VehicleModelDimensionValue):
-           return False
+            return False
         if self.vehicle_model_code != o.vehicle_model_code:
             return False
         if self.dimension_code != o.dimension_code:
@@ -140,28 +137,28 @@ class VehicleModelLabelValue:
             f"label_value={self.label_value!r})"
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'VehicleModelCode': self.vehicle_model_code,
-            'LabelCode': self.label_code,
-            'LabelValue': self.label_value,
+            "VehicleModelCode": self.vehicle_model_code,
+            "LabelCode": self.label_code,
+            "LabelValue": self.label_value,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'VehicleModelCode': "",
-            'LabelCode': "",
-            'LabelValue': "",
+            "VehicleModelCode": "",
+            "LabelCode": "",
+            "LabelValue": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
-        return ['VehicleModelCode', 'LabelCode', 'LabelValue']
+    def columns() -> list[str]:
+        return ["VehicleModelCode", "LabelCode", "LabelValue"]
 
     @staticmethod
     def table_name() -> str:
-        return 'VehicleModelLabelValue'
+        return "VehicleModelLabelValue"
 
     def __eq__(self, o) -> bool:
         if not isinstance(o, VehicleModelLabelValue):

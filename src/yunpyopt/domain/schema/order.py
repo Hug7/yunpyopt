@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 from .table import Table
 
@@ -36,34 +36,33 @@ class CargoOrder(Table):
         cls = type(self).__name__
         return f"{cls}(code={self.code!r}, name={self.name!r})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'Code': self.code,
-            'Name': self.name if self.name is not None else "",
-            'PickLocationCode': self.pick_location_code,
-            'DropLocationCode': self.drop_location_code,
-            'EarliestPickDateTime': self.earliest_pick_datetime,
+            "Code": self.code,
+            "Name": self.name if self.name is not None else "",
+            "PickLocationCode": self.pick_location_code,
+            "DropLocationCode": self.drop_location_code,
+            "EarliestPickDateTime": self.earliest_pick_datetime,
             "LatestPickDateTime": self.latest_pick_datetime,
-            'EarliestDropDateTime': self.earliest_drop_datetime,
-            'LatestDropDateTime': self.latest_drop_datetime,
+            "EarliestDropDateTime": self.earliest_drop_datetime,
+            "LatestDropDateTime": self.latest_drop_datetime,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'Code': "",
-            'Name': "",
-            'PickLocationCode': "",
-            'DropLocationCode': "",
-            'EarliestPickDateTime': "",
+            "Code": "",
+            "Name": "",
+            "PickLocationCode": "",
+            "DropLocationCode": "",
+            "EarliestPickDateTime": "",
             "LatestPickDateTime": "",
-            'EarliestDropDateTime": "",'
-            'LatestDropDateTime': "",
+            'EarliestDropDateTime": "",LatestDropDateTime': "",
         }
 
     @staticmethod
     def table_name() -> str:
-        return 'CargoOrder'
+        return "CargoOrder"
 
     def __lt__(self, other):
         if not isinstance(other, CargoOrder):
@@ -92,31 +91,28 @@ class CargoSubOrder(Table):
 
     def __repr__(self) -> str:
         cls = type(self).__name__
-        return (
-            f"{cls}(cargo_order_code={self.cargo_order_code!r}, "
-            f"cargo_sub_order_code={self.cargo_sub_order_code!r})"
-        )
+        return f"{cls}(cargo_order_code={self.cargo_order_code!r}, cargo_sub_order_code={self.cargo_sub_order_code!r})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'CargoOrderCode': self.cargo_order_code,
-            'CargoSubOrderCode': self.cargo_sub_order_code,
-            'CargoSubOrderName': self.cargo_sub_order_name if self.cargo_sub_order_name is not None else '',
-            'Quantity': self.quantity,
+            "CargoOrderCode": self.cargo_order_code,
+            "CargoSubOrderCode": self.cargo_sub_order_code,
+            "CargoSubOrderName": self.cargo_sub_order_name if self.cargo_sub_order_name is not None else "",
+            "Quantity": self.quantity,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'CargoOrderCode': "",
-            'CargoSubOrderCode': "",
-            'CargoSubOrderName': "",
-            'Quantity': "",
+            "CargoOrderCode": "",
+            "CargoSubOrderCode": "",
+            "CargoSubOrderName": "",
+            "Quantity": "",
         }
 
     @staticmethod
     def table_name() -> str:
-        return 'CargoSubOrder'
+        return "CargoSubOrder"
 
     def __lt__(self, other):
         if not isinstance(other, CargoSubOrder):
@@ -151,30 +147,30 @@ class CargoSubOrderDimensionValue(Table):
             f"dimension_code={self.dimension_code!r})"
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'CargoOrderCode': self.cargo_order_code,
-            'CargoSubOrderCode': self.cargo_sub_order_code,
-            'DimensionCode': self.dimension_code,
-            'DimensionValue': self.dimension_value,
+            "CargoOrderCode": self.cargo_order_code,
+            "CargoSubOrderCode": self.cargo_sub_order_code,
+            "DimensionCode": self.dimension_code,
+            "DimensionValue": self.dimension_value,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'CargoOrderCode': "",
-            'CargoSubOrderCode': "",
-            'DimensionCode': "",
-            'DimensionValue': "",
+            "CargoOrderCode": "",
+            "CargoSubOrderCode": "",
+            "DimensionCode": "",
+            "DimensionValue": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
-        return ['CargoOrderCode', 'CargoSubOrderCode', 'DimensionCode', 'DimensionValue']
+    def columns() -> list[str]:
+        return ["CargoOrderCode", "CargoSubOrderCode", "DimensionCode", "DimensionValue"]
 
     @staticmethod
     def table_name() -> str:
-        return 'CargoSubOrderDimensionValue'
+        return "CargoSubOrderDimensionValue"
 
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, CargoSubOrderDimensionValue):
@@ -190,13 +186,15 @@ class CargoSubOrderDimensionValue(Table):
     def __hash__(self):
         return hash((self.cargo_order_code, self.cargo_sub_order_code, self.dimension_code))
 
-
     def __lt__(self, other):
         if not isinstance(other, CargoSubOrderDimensionValue):
             return False
 
-        return ((self.cargo_order_code, self.cargo_sub_order_code, self.dimension_code) <
-                (other.cargo_order_code, other.cargo_sub_order_code, other.dimension_code))
+        return (self.cargo_order_code, self.cargo_sub_order_code, self.dimension_code) < (
+            other.cargo_order_code,
+            other.cargo_sub_order_code,
+            other.dimension_code,
+        )
 
 
 @dataclass
@@ -226,30 +224,30 @@ class CargoSubOrderLabelValue(Table):
             f"label_value={self.label_value!r})"
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'CargoOrderCode': self.cargo_order_code,
-            'CargoSubOrderCode': self.cargo_sub_order_code,
-            'LabelCode': self.label_code,
-            'LabelValue': self.label_value,
+            "CargoOrderCode": self.cargo_order_code,
+            "CargoSubOrderCode": self.cargo_sub_order_code,
+            "LabelCode": self.label_code,
+            "LabelValue": self.label_value,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'CargoOrderCode': "",
-            'CargoSubOrderCode': "",
-            'LabelCode': "",
-            'LabelValue': "",
+            "CargoOrderCode": "",
+            "CargoSubOrderCode": "",
+            "LabelCode": "",
+            "LabelValue": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
-        return ['CargoOrderCode', 'CargoSubOrderCode', 'LabelCode', 'LabelValue']
+    def columns() -> list[str]:
+        return ["CargoOrderCode", "CargoSubOrderCode", "LabelCode", "LabelValue"]
 
     @staticmethod
     def table_name() -> str:
-        return 'CargoSubOrderLabelValue'
+        return "CargoSubOrderLabelValue"
 
     def __eq__(self, o: object) -> bool:
         if not isinstance(o, CargoSubOrderLabelValue):
@@ -271,5 +269,9 @@ class CargoSubOrderLabelValue(Table):
         if not isinstance(other, CargoSubOrderLabelValue):
             return False
 
-        return ((self.cargo_order_code, self.cargo_sub_order_code, self.label_code, self.label_value) <
-                (other.cargo_order_code, other.cargo_sub_order_code, other.label_code, other.label_value))
+        return (self.cargo_order_code, self.cargo_sub_order_code, self.label_code, self.label_value) < (
+            other.cargo_order_code,
+            other.cargo_sub_order_code,
+            other.label_code,
+            other.label_value,
+        )

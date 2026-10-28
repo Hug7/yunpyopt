@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 from .table import Table
 
@@ -18,31 +18,30 @@ class DistMatrixCode(Table):
         code: 距离矩阵编码。
         name: 距离矩阵编码名称。
     """
+
     code: str
     name: str | None = None
 
     def __repr__(self) -> str:
         cls = type(self).__name__
-        return (
-            f"{cls}(code={self.code}, to={self.name}"
-        )
+        return f"{cls}(code={self.code}, to={self.name}"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'Code': self.code,
-            'Name': self.name if self.name is not None else "",
+            "Code": self.code,
+            "Name": self.name if self.name is not None else "",
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'Code': "",
-            'Name': "",
+            "Code": "",
+            "Name": "",
         }
 
     @staticmethod
     def table_name() -> str:
-        return 'DistMatrixCode'
+        return "DistMatrixCode"
 
 
 @dataclass
@@ -67,31 +66,21 @@ class DistMatrix(Table):
 
     def __repr__(self) -> str:
         cls = type(self).__name__
-        return (
-            f"{cls}(from={self.from_location_code!r}, "
-            f"to={self.to_location_code!r}, "
-            f"matrix={self.dist_matrix_code})"
-        )
+        return f"{cls}(from={self.from_location_code!r}, to={self.to_location_code!r}, matrix={self.dist_matrix_code})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'FromLocationCode': self.from_location_code,
-            'ToLocationCode': self.to_location_code,
-            'DistMatrixCode': self.dist_matrix_code,
-            'Distance': self.distance,
-            'Time': self.time
+            "FromLocationCode": self.from_location_code,
+            "ToLocationCode": self.to_location_code,
+            "DistMatrixCode": self.dist_matrix_code,
+            "Distance": self.distance,
+            "Time": self.time,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
-        return {
-            'FromLocationCode': "",
-            'ToLocationCode': "",
-            'DistMatrixCode': "",
-            'Distance': "",
-            'Time': ""
-        }
+    def empty_dict() -> dict[str, Any]:
+        return {"FromLocationCode": "", "ToLocationCode": "", "DistMatrixCode": "", "Distance": "", "Time": ""}
 
     @staticmethod
     def table_name() -> str:
-        return 'DistMatrix'
+        return "DistMatrix"

@@ -1,8 +1,8 @@
-"""Tests for yunpy.domain.schema.carrier."""
+"""Tests for yunpyopt.domain.schema.carrier."""
 
 from __future__ import annotations
 
-from yunpy.domain.schema.carrier import Carrier, CarrierLabelValue, Vehicle
+from yunpyopt.domain.schema.carrier import Carrier, CarrierLabelValue, Vehicle
 
 
 class TestCarrier:
