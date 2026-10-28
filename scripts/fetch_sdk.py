@@ -51,7 +51,7 @@ def sdk_url(version: str) -> str:
     explicit = os.environ.get("YUN_SDK_URL")
     if explicit:
         return explicit
-    return f"{RELEASE_BASE}/{version}/{sdk_name(version)}"
+    return f"{RELEASE_BASE}/v{version}/{sdk_name(version)}"
 
 
 def _download(url: str, destination: Path) -> None:
@@ -80,7 +80,7 @@ def _expected_sha256(version: str, name: str) -> str:
     if explicit:
         return explicit.strip().lower()
 
-    checksums_url = os.environ.get("YUN_SDK_SHA256SUMS_URL") or f"{RELEASE_BASE}/{version}/SHA256SUMS"
+    checksums_url = os.environ.get("YUN_SDK_SHA256SUMS_URL") or f"{RELEASE_BASE}/v{version}/SHA256SUMS"
     with tempfile.TemporaryDirectory() as tmp:
         checksums = Path(tmp) / "SHA256SUMS"
         _download(checksums_url, checksums)
