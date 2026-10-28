@@ -1,38 +1,48 @@
 [build-system]
-requires = ["poetry-core>=2.0"]
+requires = ["poetry-core>=2.5,<3", "pybind11>=2.13,<4"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "yunpy"
+name = "yunpyopt"
 version = "0.1.0"
-description = "Python caller for the project \"yun\" — domain models for logistics optimization."
-authors = ["yunpy contributors"]
+description = "Python caller for the project \"yun\" — domain models and solver binding for logistics optimization."
+authors = ["yunpyopt contributors"]
 license = "Apache-2.0"
 readme = "README.md"
-packages = [{ include = "yunpy", from = "src" }]
+homepage = "https://github.com/Hug7/yunpyopt"
+repository = "https://github.com/Hug7/yunpyopt"
+packages = [{ include = "yunpyopt", from = "src" }]
 
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
-    "Operating System :: OS Independent",
+    "Operating System :: MacOS :: MacOS X",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Scientific/Engineering",
 ]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
 pandas = "^3.0.3"
+typing-extensions = ">=4.6"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8.0"
 ruff = ">=0.8"
 mypy = ">=1.14"
+wheel = ">=0.45"
+
+# 让 poetry-core 走“平台 wheel”分支：标签由构建解释器决定，
+# 构建完再用 scripts/fix_wheel_tag.py 修正为扩展的实际 minos。
+[tool.poetry.build]
+script = "scripts/build_ext.py"
 
 [tool.ruff]
 target-version = "py311"
-line-length = 100
+line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
@@ -42,7 +52,7 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.ruff.lint.isort]
-known-first-party = ["yunpy"]
+known-first-party = ["yunpyopt"]
 
 [tool.mypy]
 python_version = "3.11"
@@ -50,6 +60,10 @@ strict = true
 # Relax strict for now; tighten as the codebase matures
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
+
+[[tool.mypy.overrides]]
+module = ["pandas", "pandas.*", "yunpyopt._core", "yunpyopt._core.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

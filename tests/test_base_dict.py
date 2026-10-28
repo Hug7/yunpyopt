@@ -1,8 +1,8 @@
-"""Tests for yunpy.domain.schema.base_dict."""
+"""Tests for yunpyopt.domain.schema.base_dict."""
 
 from __future__ import annotations
 
-from yunpy.domain.schema.base_dict import Dimension, Label, LabelApply, LabelValue
+from yunpyopt.domain.schema.base_dict import Dimension, Label, LabelApply, LabelValue
 
 
 class TestDimension:

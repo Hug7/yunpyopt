@@ -1,0 +1,7 @@
+start_time: 2026-01-01 00:00
+end_time: 2026-01-01 22:31
+strategy_file: Strategy.lua
+load_unload_policy: FILO
+soft_constraints:
+  - code: Distance
+    params: {dist_factor: 1}

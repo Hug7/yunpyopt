@@ -1,6 +1,6 @@
 """Domain schema package — all table-backed domain models."""
 
-from .base_dict import Dimension, Label, LabelApply, LabelValue, LabelApplyItem
+from .base_dict import Dimension, Label, LabelApply, LabelApplyItem, LabelValue
 from .carrier import Carrier, CarrierLabelValue, Vehicle
 from .location import (
     Location,
@@ -11,15 +11,15 @@ from .location import (
     WorkEffect,
     WorkFixed,
 )
+from .network import (
+    DistMatrix,
+    DistMatrixCode,
+)
 from .order import (
     CargoOrder,
     CargoSubOrder,
     CargoSubOrderDimensionValue,
     CargoSubOrderLabelValue,
-)
-from .network import (
-    DistMatrixCode,
-    DistMatrix,
 )
 from .vehicle_model import (
     VehicleModel,

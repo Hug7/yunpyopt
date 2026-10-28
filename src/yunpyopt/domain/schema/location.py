@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 from .table import Table
 
@@ -28,26 +28,26 @@ class Location(Table):
         cls = type(self).__name__
         return f"{cls}(code={self.code!r}, name={self.name!r})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'Code': self.code,
-            'Name': self.name if self.name is not None else "",
-            'Lng': self.lng,
-            'Lat': self.lat,
+            "Code": self.code,
+            "Name": self.name if self.name is not None else "",
+            "Lng": self.lng,
+            "Lat": self.lat,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'Code': "",
-            'Name': "",
+            "Code": "",
+            "Name": "",
             "Lng": "",
             "Lat": "",
         }
 
     @staticmethod
     def table_name() -> str:
-        return 'Location'
+        return "Location"
 
 
 @dataclass
@@ -74,28 +74,28 @@ class LocationLabelValue:
             f"label_value={self.label_value!r})"
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'LocationCode': self.location_code,
-            'LabelCode': self.label_code,
-            'LabelValue': self.label_value,
+            "LocationCode": self.location_code,
+            "LabelCode": self.label_code,
+            "LabelValue": self.label_value,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'LocationCode': "",
-            'LabelCode': "",
-            'LabelValue': "",
+            "LocationCode": "",
+            "LabelCode": "",
+            "LabelValue": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
-        return ['LocationCode', 'LabelCode', 'LabelValue']
+    def columns() -> list[str]:
+        return ["LocationCode", "LabelCode", "LabelValue"]
 
     @staticmethod
     def table_name() -> str:
-        return 'LocationLabelValue'
+        return "LocationLabelValue"
 
     def __eq__(self, o):
         if not isinstance(o, LocationLabelValue):
@@ -108,7 +108,7 @@ class LocationLabelValue:
             return False
         return True
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.location_code, self.label_code, self.label_value))
 
 
@@ -136,28 +136,28 @@ class LocationAvailableVehicle:
             f"vehicle_model_code={self.vehicle_model_code!r})"
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'LocationCode': self.location_code,
-            'CarrierCode': self.carrier_code,
-            'VehicleModelCode': self.vehicle_model_code,
+            "LocationCode": self.location_code,
+            "CarrierCode": self.carrier_code,
+            "VehicleModelCode": self.vehicle_model_code,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'LocationCode': "",
-            'CarrierCode': "",
-            'VehicleModelCode': "",
+            "LocationCode": "",
+            "CarrierCode": "",
+            "VehicleModelCode": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
-        return ['LocationCode', 'CarrierCode', 'VehicleModelCode']
+    def columns() -> list[str]:
+        return ["LocationCode", "CarrierCode", "VehicleModelCode"]
 
     @staticmethod
     def table_name() -> str:
-        return 'LocationAvailableVehicle'
+        return "LocationAvailableVehicle"
 
     def __eq__(self, o):
         if not isinstance(o, LocationAvailableVehicle):
@@ -170,7 +170,7 @@ class LocationAvailableVehicle:
             return False
         return True
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.location_code, self.carrier_code, self.vehicle_model_code))
 
 
@@ -195,28 +195,28 @@ class WorkCalendarDaily:
         cls = type(self).__name__
         return f"{cls}(location_code={self.location_code!r}, calendar_type={self.calendar_type!r})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'LocationCode': self.location_code,
-            'CalendarType': self.calendar_type,
-            'Daily': self.daily,
+            "LocationCode": self.location_code,
+            "CalendarType": self.calendar_type,
+            "Daily": self.daily,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'LocationCode': "",
-            'CalendarType': "",
-            'Daily': "",
+            "LocationCode": "",
+            "CalendarType": "",
+            "Daily": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
-        return ['LocationCode', 'CalendarType', 'Daily']
+    def columns() -> list[str]:
+        return ["LocationCode", "CalendarType", "Daily"]
 
     @staticmethod
     def table_name() -> str:
-        return 'WorkCalendarDaily'
+        return "WorkCalendarDaily"
 
     def __eq__(self, o):
         if not isinstance(o, WorkCalendarDaily):
@@ -227,7 +227,7 @@ class WorkCalendarDaily:
             return False
         return True
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.location_code, self.calendar_type))
 
 
@@ -264,52 +264,52 @@ class WorkCalendarWeekly:
         cls = type(self).__name__
         return f"{cls}(location_code={self.location_code!r}, calendar_type={self.calendar_type!r})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'LocationCode': self.location_code,
-            'CalendarType': self.calendar_type,
-            'Monday': self.monday if self.monday is not None else "",
-            'Tuesday': self.tuesday if self.tuesday is not None else "",
-            'Wednesday': self.wednesday if self.wednesday is not None else "",
-            'Thursday': self.thursday if self.thursday is not None else "",
-            'Friday': self.friday if self.friday is not None else "",
-            'Saturday': self.saturday if self.saturday is not None else "",
-            'Sunday': self.sunday if self.sunday is not None else "",
+            "LocationCode": self.location_code,
+            "CalendarType": self.calendar_type,
+            "Monday": self.monday if self.monday is not None else "",
+            "Tuesday": self.tuesday if self.tuesday is not None else "",
+            "Wednesday": self.wednesday if self.wednesday is not None else "",
+            "Thursday": self.thursday if self.thursday is not None else "",
+            "Friday": self.friday if self.friday is not None else "",
+            "Saturday": self.saturday if self.saturday is not None else "",
+            "Sunday": self.sunday if self.sunday is not None else "",
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'LocationCode': "",
-            'CalendarType': "",
-            'Monday': "",
-            'Tuesday': "",
-            'Wednesday': "",
-            'Thursday': "",
-            'Friday': "",
-            'Saturday': "",
-            'Sunday': "",
+            "LocationCode": "",
+            "CalendarType": "",
+            "Monday": "",
+            "Tuesday": "",
+            "Wednesday": "",
+            "Thursday": "",
+            "Friday": "",
+            "Saturday": "",
+            "Sunday": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
+    def columns() -> list[str]:
         return [
-            'LocationCode',
-            'CalendarType',
-            'Monday',
-            'Tuesday',
-            'Wednesday',
-            'Thursday',
-            'Friday',
-            'Saturday',
-            'Sunday',
+            "LocationCode",
+            "CalendarType",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
         ]
 
     @staticmethod
     def table_name() -> str:
-        return 'WorkCalendarWeekly'
+        return "WorkCalendarWeekly"
 
-    def __eq__(self, o: WorkCalendarWeekly):
+    def __eq__(self, o: object) -> bool:
         if not isinstance(o, WorkCalendarWeekly):
             return False
         if self.location_code != o.location_code:
@@ -318,7 +318,7 @@ class WorkCalendarWeekly:
             return False
         return True
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.location_code, self.calendar_type))
 
 
@@ -342,37 +342,37 @@ class WorkFixed:
         cls = type(self).__name__
         return f"{cls}(location_code={self.location_code!r})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'LocationCode': self.location_code,
-            'FixedPickTime': self.fixed_pick_time if self.fixed_pick_time is not None else 0,
-            'FixedDropTime': self.fixed_drop_time if self.fixed_drop_time is not None else 0,
+            "LocationCode": self.location_code,
+            "FixedPickTime": self.fixed_pick_time if self.fixed_pick_time is not None else 0,
+            "FixedDropTime": self.fixed_drop_time if self.fixed_drop_time is not None else 0,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'LocationCode': "",
-            'FixedPickTime': "",
-            'FixedDropTime': "",
+            "LocationCode": "",
+            "FixedPickTime": "",
+            "FixedDropTime": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
-        return ['LocationCode', 'FixedPickTime', 'FixedDropTime']
+    def columns() -> list[str]:
+        return ["LocationCode", "FixedPickTime", "FixedDropTime"]
 
     @staticmethod
     def table_name() -> str:
-        return 'WorkFixed'
+        return "WorkFixed"
 
-    def __eq__(self, o: WorkFixed):
+    def __eq__(self, o: object) -> bool:
         if not isinstance(o, WorkFixed):
             return False
         if self.location_code != o.location_code:
             return False
         return True
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.location_code)
 
 
@@ -397,35 +397,37 @@ class WorkEffect:
     def __repr__(self) -> str:
         cls = type(self).__name__
         return (
-            f"{cls}(location_code={self.location_code!r}, activity_type={self.activity_type!r}, dimension_code={self.dimension_code!r})"
+            f"{cls}(location_code={self.location_code!r}, "
+            f"activity_type={self.activity_type!r}, "
+            f"dimension_code={self.dimension_code!r})"
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'LocationCode': self.location_code,
-            'ActivityType': self.activity_type,
-            'DimensionCode': self.dimension_code,
-            'PerHourProcessQuantity': self.per_hour_process_quantity,
+            "LocationCode": self.location_code,
+            "ActivityType": self.activity_type,
+            "DimensionCode": self.dimension_code,
+            "PerHourProcessQuantity": self.per_hour_process_quantity,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'LocationCode': "",
-            'ActivityType': "",
-            'DimensionCode': "",
-            'PerHourProcessQuantity': "",
+            "LocationCode": "",
+            "ActivityType": "",
+            "DimensionCode": "",
+            "PerHourProcessQuantity": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
-        return ['LocationCode', 'ActivityType', 'DimensionCode', 'PerHourProcessQuantity']
+    def columns() -> list[str]:
+        return ["LocationCode", "ActivityType", "DimensionCode", "PerHourProcessQuantity"]
 
     @staticmethod
     def table_name() -> str:
-        return 'WorkEffect'
+        return "WorkEffect"
 
-    def __eq__(self, o: WorkEffect):
+    def __eq__(self, o: object) -> bool:
         if not isinstance(o, WorkEffect):
             return False
         if self.location_code != o.location_code:
@@ -436,5 +438,5 @@ class WorkEffect:
             return False
         return True
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.location_code, self.activity_type, self.dimension_code))

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 from .table import Table
 
@@ -24,22 +24,22 @@ class Carrier(Table):
         cls = type(self).__name__
         return f"{cls}(code={self.code!r}, name={self.name!r})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'Code': self.code,
-            'Name': self.name if self.name is not None else "",
+            "Code": self.code,
+            "Name": self.name if self.name is not None else "",
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'Code': "",
-            'Name': "",
+            "Code": "",
+            "Name": "",
         }
 
     @staticmethod
     def table_name() -> str:
-        return 'Carrier'
+        return "Carrier"
 
     def __lt__(self, other) -> bool:
         if not isinstance(other, Carrier):
@@ -72,28 +72,28 @@ class CarrierLabelValue:
             f"label_value={self.label_value!r})"
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'CarrierCode': self.carrier_code,
-            'LabelCode': self.label_code,
-            'LabelValue': self.label_value,
+            "CarrierCode": self.carrier_code,
+            "LabelCode": self.label_code,
+            "LabelValue": self.label_value,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'CarrierCode': "",
-            'LabelCode': "",
-            'LabelValue': "",
+            "CarrierCode": "",
+            "LabelCode": "",
+            "LabelValue": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
-        return ['CarrierCode', 'LabelCode', 'LabelValue']
+    def columns() -> list[str]:
+        return ["CarrierCode", "LabelCode", "LabelValue"]
 
     @staticmethod
     def table_name() -> str:
-        return 'CarrierLabelValue'
+        return "CarrierLabelValue"
 
     def __eq__(self, o) -> bool:
         if not isinstance(o, CarrierLabelValue):
@@ -113,8 +113,11 @@ class CarrierLabelValue:
         if not isinstance(other, CarrierLabelValue):
             return False
 
-        return ((self.carrier_code, self.label_code, self.label_value) <
-                (other.carrier_code, other.label_code, other.label_value))
+        return (self.carrier_code, self.label_code, self.label_value) < (
+            other.carrier_code,
+            other.label_code,
+            other.label_value,
+        )
 
 
 @dataclass
@@ -145,28 +148,28 @@ class Vehicle:
             f"count={self.count})"
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'CarrierCode': self.carrier_code,
-            'VehicleModelCode': self.vehicle_model_code,
-            'Count': self.count,
-            'OriginLocationCode': self.get_origin_location_code(),
-            'DestinationLocationCode': self.get_destination_location_code(),
+            "CarrierCode": self.carrier_code,
+            "VehicleModelCode": self.vehicle_model_code,
+            "Count": self.count,
+            "OriginLocationCode": self.get_origin_location_code(),
+            "DestinationLocationCode": self.get_destination_location_code(),
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'CarrierCode': "",
-            'VehicleModelCode': "",
-            'Count': "",
-            'OriginLocationCode': "",
-            'DestinationLocationCode': "",
+            "CarrierCode": "",
+            "VehicleModelCode": "",
+            "Count": "",
+            "OriginLocationCode": "",
+            "DestinationLocationCode": "",
         }
 
     @staticmethod
     def table_name() -> str:
-        return 'Vehicle'
+        return "Vehicle"
 
     def get_origin_location_code(self) -> str:
         return self.origin_location_code if self.origin_location_code is not None else ""
@@ -188,7 +191,14 @@ class Vehicle:
         return True
 
     def __hash__(self):
-        return hash((self.carrier_code, self.vehicle_model_code, self.get_origin_location_code(), self.get_destination_location_code()))
+        return hash(
+            (
+                self.carrier_code,
+                self.vehicle_model_code,
+                self.get_origin_location_code(),
+                self.get_destination_location_code(),
+            )
+        )
 
     def __lt__(self, other) -> bool:
         if not isinstance(other, Vehicle):

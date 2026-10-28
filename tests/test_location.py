@@ -1,8 +1,8 @@
-"""Tests for yunpy.domain.schema.location."""
+"""Tests for yunpyopt.domain.schema.location."""
 
 from __future__ import annotations
 
-from yunpy.domain.schema.location import (
+from yunpyopt.domain.schema.location import (
     Location,
     LocationAvailableVehicle,
     LocationLabelValue,
@@ -32,9 +32,7 @@ class TestLocationLabelValue:
 
 class TestLocationAvailableVehicle:
     def test_construct(self) -> None:
-        lav = LocationAvailableVehicle(
-            location_code="WH001", carrier_code="C1", vehicle_model_code="VM1"
-        )
+        lav = LocationAvailableVehicle(location_code="WH001", carrier_code="C1", vehicle_model_code="VM1")
         assert lav.carrier_code == "C1"
 
 

@@ -2,7 +2,4 @@
 
 from .schema_model import SchemaModel
 
-
-__all__ = [
-    "SchemaModel"
-]
+__all__ = ["SchemaModel"]

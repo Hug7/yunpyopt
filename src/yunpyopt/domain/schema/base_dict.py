@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Set, List
+from typing import Any
 
 from typing_extensions import override
 
@@ -29,24 +29,24 @@ class Dimension(Table):
         return f"{cls}(code={self.code!r}, precision={self.precision})"
 
     @override
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'Code': self.code,
-            'Precision': self.precision,
-            'Name': self.name if self.name is not None else "",
+            "Code": self.code,
+            "Precision": self.precision,
+            "Name": self.name if self.name is not None else "",
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'Code': "",
-            'Precision': "",
-            'Name': "",
+            "Code": "",
+            "Precision": "",
+            "Name": "",
         }
 
     @staticmethod
     def table_name() -> str:
-        return 'Dimension'
+        return "Dimension"
 
     def __lt__(self, other):
         if not isinstance(other, Dimension):
@@ -71,26 +71,26 @@ class Label(Table):
         cls = type(self).__name__
         return f"{cls}(code={self.code!r}, name={self.name!r})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'Code': self.code,
-            'Name': self.name if self.name is not None else "",
+            "Code": self.code,
+            "Name": self.name if self.name is not None else "",
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'Code': "",
-            'Name': "",
+            "Code": "",
+            "Name": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
-        return ['Code', 'Name']
+    def columns() -> list[str]:
+        return ["Code", "Name"]
 
     @staticmethod
     def table_name() -> str:
-        return 'Label'
+        return "Label"
 
     def __lt__(self, other):
         if not isinstance(other, Label):
@@ -117,26 +117,26 @@ class LabelValue(Table):
         cls = type(self).__name__
         return f"{cls}(label_code={self.label_code!r}, label_value={self.label_value!r})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'LabelCode': self.label_code,
-            'LabelValue': self.label_value,
+            "LabelCode": self.label_code,
+            "LabelValue": self.label_value,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'LabelCode': "",
-            'LabelValue': "",
+            "LabelCode": "",
+            "LabelValue": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
-        return ['LabelCode', 'LabelValue']
+    def columns() -> list[str]:
+        return ["LabelCode", "LabelValue"]
 
     @staticmethod
     def table_name() -> str:
-        return 'LabelValue'
+        return "LabelValue"
 
     def __lt__(self, other):
         if not isinstance(other, LabelValue):
@@ -146,17 +146,17 @@ class LabelValue(Table):
 
 
 class LabelApplyItem:
-    LOCATION: str = 'Location'
-    VEHICLE_MODEL: str = 'VehicleModel'
-    ORDER: str = 'Order'
-    CARRIER: str = 'Carrier'
+    LOCATION: str = "Location"
+    VEHICLE_MODEL: str = "VehicleModel"
+    ORDER: str = "Order"
+    CARRIER: str = "Carrier"
 
 
-LabelApplyItemSet: Set[str] = {
+LabelApplyItemSet: set[str] = {
     LabelApplyItem.LOCATION,
     LabelApplyItem.VEHICLE_MODEL,
     LabelApplyItem.ORDER,
-    LabelApplyItem.CARRIER
+    LabelApplyItem.CARRIER,
 }
 
 
@@ -177,32 +177,32 @@ class LabelApply(Table):
         self.label_code = label_code
         self.apply_item = apply_item
         if not LabelApplyItemSet.__contains__(apply_item):
-            raise ValueError(f'apply_item={apply_item!r} not in LabelApplyItems')
+            raise ValueError(f"apply_item={apply_item!r} not in LabelApplyItems")
 
     def __repr__(self) -> str:
         cls = type(self).__name__
         return f"{cls}(label_code={self.label_code!r}, apply_item={self.apply_item!r})"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'LabelCode': self.label_code,
-            'ApplyItem': self.apply_item,
+            "LabelCode": self.label_code,
+            "ApplyItem": self.apply_item,
         }
 
     @staticmethod
-    def empty_dict() -> Dict[str, Any]:
+    def empty_dict() -> dict[str, Any]:
         return {
-            'LabelCode': "",
-            'ApplyItem': "",
+            "LabelCode": "",
+            "ApplyItem": "",
         }
 
     @staticmethod
-    def columns() -> List[str]:
-        return ['LabelCode', 'ApplyItem']
+    def columns() -> list[str]:
+        return ["LabelCode", "ApplyItem"]
 
     @staticmethod
     def table_name() -> str:
-        return 'LabelApply'
+        return "LabelApply"
 
     def __lt__(self, other):
         if not isinstance(other, LabelApplyItem):

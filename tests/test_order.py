@@ -1,8 +1,8 @@
-"""Tests for yunpy.domain.schema.order."""
+"""Tests for yunpyopt.domain.schema.order."""
 
 from __future__ import annotations
 
-from yunpy.domain.schema.order import (
+from yunpyopt.domain.schema.order import (
     CargoOrder,
     CargoSubOrder,
     CargoSubOrderDimensionValue,

@@ -1,4 +1,4 @@
-"""yunpy — Python caller for the project "yun".
+"""yunpyopt — Python caller for the project "yun".
 
 Provides domain models for logistics optimization: locations, vehicles,
 carriers, orders, distance matrices, and supporting dictionary types.
@@ -6,7 +6,7 @@ carriers, orders, distance matrices, and supporting dictionary types.
 
 from importlib.metadata import PackageNotFoundError, version
 
-from yunpy.domain.schema import (
+from yunpyopt.domain.schema import (
     CargoOrder,
     CargoSubOrder,
     CargoSubOrderDimensionValue,
@@ -14,12 +14,12 @@ from yunpy.domain.schema import (
     Carrier,
     CarrierLabelValue,
     Dimension,
-    DistMatrixCode,
     DistMatrix,
+    DistMatrixCode,
     Label,
     LabelApply,
-    LabelValue,
     LabelApplyItem,
+    LabelValue,
     Location,
     LocationAvailableVehicle,
     LocationLabelValue,
@@ -32,13 +32,24 @@ from yunpy.domain.schema import (
     WorkEffect,
     WorkFixed,
 )
-
-from yunpy.domain.schema_model import SchemaModel
+from yunpyopt.domain.schema_model import SchemaModel
 
 try:
-    __version__ = version("yunpy")
+    __version__ = version("yunpyopt")
 except PackageNotFoundError:  # pragma: no cover
     __version__ = "0.0.0"
+
+_LAZY_SOLVER_EXPORTS = frozenset({"Solver", "YunSolverError", "DEFAULT_LOG_LEVEL", "RESULT_KEYS", "solve"})
+
+
+def __getattr__(name: str) -> object:
+    """延迟导入 solver，避免只用领域模型时强制加载二进制扩展。"""
+    if name in _LAZY_SOLVER_EXPORTS:
+        from . import solver
+
+        return getattr(solver, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     "__version__",
@@ -74,4 +85,10 @@ __all__ = [
     "CargoSubOrderLabelValue",
     # SchemaModel
     "SchemaModel",
+    # solver（按需加载）
+    "Solver",
+    "YunSolverError",
+    "DEFAULT_LOG_LEVEL",
+    "RESULT_KEYS",
+    "solve",
 ]
