@@ -83,14 +83,14 @@ target_link_libraries(yun_python_binding PRIVATE yun_sdk)
 
 ### 3.3 `.github/workflows/sdk-release.yml`
 
-- 触发：`v*` tag 或 `workflow_dispatch`（输入 `version`）；
+- 触发：版本 tag（如 `0.1.0`）或 `workflow_dispatch`（输入 `version`）；
 - 校验 tag/输入版本与 `CMakeLists.txt` 的 `project(yun VERSION ...)` 一致；
 - `macos-15`（Xcode 16+）+ Python 3.11 + Conan 缓存；
 - 上传 `dist/*`（tarball + `SHA256SUMS`）；tag 触发时创建 GitHub Release。
 
 ### 3.4 版本规则
 
-SDK 版本 = `project(yun VERSION ...)` = tag `v<version>`；已发布版本不覆盖，C++ 变更即 bump 版本。
+SDK 版本 = `project(yun VERSION ...)` = tag `<version>`（如 `0.1.0`）；已发布版本不覆盖，C++ 变更即 bump 版本。
 
 ---
 
@@ -105,8 +105,8 @@ yun-sdk-version.txt   # 当前 0.1.0
 下载地址：
 
 ```text
-https://github.com/Hug7/yun/releases/download/v<version>/yun-sdk-<version>-macos-arm64.tar.gz
-https://github.com/Hug7/yun/releases/download/v<version>/SHA256SUMS
+https://github.com/Hug7/yun/releases/download/<version>/yun-sdk-<version>-macos-arm64.tar.gz
+https://github.com/Hug7/yun/releases/download/<version>/SHA256SUMS
 ```
 
 ### 4.2 `scripts/fetch_sdk.py`
@@ -154,7 +154,7 @@ script = "scripts/build_ext.py"
 
 ## 5. 发布顺序（硬约束）
 
-1. `yun` 发布 SDK Release（`v<yun-version>`）；
+1. `yun` 发布 SDK Release（`<yun-version>`，如 `0.1.0`）；
 2. `yunpyopt` 更新 `yun-sdk-version.txt`（版本变化时）并 push；
 3. `yunpyopt` 打 tag 发布 wheel。
 
