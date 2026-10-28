@@ -189,18 +189,25 @@ YUNPYOPT_REQUIRE_CORE=1 poetry run pytest -v
 
 ## 7. CI / Release
 
+两个 workflow 复用两个 composite action，构建与校验逻辑只维护一份：
+
+| action | 作用 |
+| --- | --- |
+| `.github/actions/setup-poetry` | 安装 Poetry 2.5.1，并缓存 `poetry config cache-dir`（key 含 `poetry.lock` 哈希） |
+| `.github/actions/build-wheel` | 缓存 SDK → `python -m build --wheel` → 修正标签 → 校验内容 → 干净 venv 冒烟求解 → `otool` 检查 → 上传 `wheel` artifact |
+
 ### 7.1 `ci.yml`（push/PR 到 `main`）
 
 | job | runner | 内容 |
 | --- | --- | --- |
-| Lint & typecheck（20 min） | `macos-15` | 检查 `_core*.so` 未提交、安装 Poetry 2.5.1、`poetry install --no-root`、ruff check/format、mypy、`poetry check --lock` |
-| Build & test wheel（45 min） | `macos-15` | 缓存 SDK、`poetry install`（触发扩展构建）、`YUNPYOPT_REQUIRE_CORE=1 pytest -v`、`poetry build -f wheel`、`fix_wheel_tag.py`、wheel 校验与 `twine check`、干净 venv 冒烟求解、`otool` 依赖/RPATH 检查、上传 `wheel` artifact |
+| Lint & typecheck（20 min） | `macos-15` | 检查 `_core*.so` 未提交、`setup-poetry`、`poetry install --no-root`、ruff check/format、mypy、`poetry check --lock` |
+| Build & test wheel（45 min） | `macos-15` | `setup-poetry` → `build-wheel`（构建并校验 wheel，同时恢复 SDK 缓存）→ `poetry install`（触发扩展构建）→ `YUNPYOPT_REQUIRE_CORE=1 pytest -v` |
 
-环境：`MACOSX_DEPLOYMENT_TARGET=14.0`；test job 设 `POETRY_VIRTUALENVS_CREATE=false`，让扩展构建落在 runner 的 3.11 解释器上。
+环境：`MACOSX_DEPLOYMENT_TARGET=14.0`；test job 设 `POETRY_VIRTUALENVS_CREATE=false`，让扩展构建落在 runner 的 3.11 解释器上。先构建 wheel 再 `poetry install`，是为了让 SDK 缓存只在一个地方恢复。
 
 ### 7.2 `release.yml`（tag `v*` 或手动触发）
 
-- **Build wheel**：校验 tag 与 `pyproject.toml` 版本一致（仅 tag 触发）→ 缓存 SDK → `python -m build --wheel` → `fix_wheel_tag.py` → `twine check` 与 wheel 内容校验 → 干净 venv 冒烟求解 → `otool` 检查 → 上传 artifact；
+- **Build wheel**：校验 tag 与 `pyproject.toml` 版本一致（仅 tag 触发）→ 安装 build/twine/wheel → `build-wheel`；
 - **Create GitHub Release**：仅 tag 触发，`needs: build`，用 `softprops/action-gh-release` 上传 `dist/*.whl` 并生成 release notes。
 
 ### 7.3 缓存与权限

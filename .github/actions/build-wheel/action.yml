@@ -1,0 +1,76 @@
+name: Build and verify wheel
+description: 缓存 yun SDK、构建 wheel、修正平台标签、校验内容、冒烟求解、检查动态依赖并上传 artifact
+
+inputs:
+  artifact-name:
+    description: 上传的 artifact 名称
+    required: false
+    default: wheel
+
+runs:
+  using: composite
+  steps:
+    - name: Cache yun SDK
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/yunpyopt/sdk
+        key: yun-sdk-${{ hashFiles('yun-sdk-version.txt') }}
+        restore-keys: |
+          yun-sdk-
+
+    - name: Build wheel
+      shell: bash
+      run: python -m build --wheel --outdir dist
+
+    - name: Fix wheel platform tag
+      shell: bash
+      run: python scripts/fix_wheel_tag.py dist
+
+    - name: Validate wheel
+      shell: bash
+      run: |
+        python - <<'PY'
+        import glob, zipfile
+        wheel = glob.glob("dist/*.whl")[0]
+        assert "-cp311-cp311-macosx_14_0_arm64.whl" in wheel, wheel
+        names = zipfile.ZipFile(wheel).namelist()
+        sos = [name for name in names if name.endswith(".so")]
+        assert len(sos) == 1, sos
+        assert sos[0].startswith("yunpyopt/_core."), sos
+        print("wheel ok:", wheel)
+        PY
+        twine check dist/*
+
+    - name: Smoke test wheel in clean venv
+      shell: bash
+      run: |
+        python -m venv /tmp/wheel-venv
+        /tmp/wheel-venv/bin/pip install --no-cache-dir dist/*.whl
+        rm -rf /tmp/c1_2_1
+        cp -R tests/data/c1_2_1 /tmp/c1_2_1
+        rm -rf /tmp/c1_2_1/output
+        /tmp/wheel-venv/bin/python - <<'PY'
+        from pathlib import Path
+        from yunpyopt import __version__, solve
+        result = solve("/tmp/c1_2_1", log_level="warning")
+        assert result["loads"] and Path(result["loads"]).is_file(), result
+        print("version:", __version__)
+        print(result)
+        PY
+
+    - name: Check dynamic dependencies and RPATH
+      shell: bash
+      run: |
+        rm -rf /tmp/whl && mkdir /tmp/whl
+        unzip -q dist/*.whl -d /tmp/whl
+        so=$(ls /tmp/whl/yunpyopt/_core*.so)
+        bad=$(otool -L "$so" | tail -n +2 | grep -v -E '(/usr/lib/|/System/Library/)' || true)
+        if [ -n "$bad" ]; then echo "非系统依赖:"; echo "$bad"; exit 1; fi
+        if otool -l "$so" | grep -q LC_RPATH; then echo "存在 LC_RPATH"; exit 1; fi
+        echo "dylib deps ok"
+
+    - name: Upload wheel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: dist/*.whl

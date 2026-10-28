@@ -14,7 +14,7 @@ jobs:
     runs-on: macos-15
     timeout-minutes: 45
     env:
-      MACOSX_DEPLOYMENT_TARGET: "15.0"
+      MACOSX_DEPLOYMENT_TARGET: "14.0"
     steps:
       - uses: actions/checkout@v4
 
@@ -34,68 +34,12 @@ jobs:
           print("version:", version)
           PY
 
-      - name: Cache yun SDK
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/yunpyopt/sdk
-          key: yun-sdk-${{ hashFiles('yun-sdk-version.txt') }}
-          restore-keys: |
-            yun-sdk-
-
       - name: Install build tools
         run: |
           python -m pip install --upgrade pip
           python -m pip install build twine wheel
 
-      - name: Build wheel
-        run: python -m build --wheel --outdir dist
-
-      - name: Fix wheel platform tag
-        run: python scripts/fix_wheel_tag.py dist
-
-      - name: Validate wheel
-        run: |
-          twine check dist/*
-          python - <<'PY'
-          import glob, zipfile
-          wheel = glob.glob("dist/*.whl")[0]
-          assert "-cp311-cp311-macosx_14_0_arm64.whl" in wheel, wheel
-          names = zipfile.ZipFile(wheel).namelist()
-          sos = [name for name in names if name.endswith(".so")]
-          assert len(sos) == 1, sos
-          print("wheel ok:", wheel)
-          PY
-
-      - name: Smoke test wheel
-        run: |
-          python -m venv /tmp/wheel-venv
-          /tmp/wheel-venv/bin/pip install --no-cache-dir dist/*.whl
-          rm -rf /tmp/c1_2_1
-          cp -R tests/data/c1_2_1 /tmp/c1_2_1
-          rm -rf /tmp/c1_2_1/output
-          /tmp/wheel-venv/bin/python - <<'PY'
-          from pathlib import Path
-          from yunpyopt import __version__, solve
-          result = solve("/tmp/c1_2_1", log_level="warning")
-          assert result["loads"] and Path(result["loads"]).is_file(), result
-          print("version:", __version__)
-          print(result)
-          PY
-
-      - name: Check dynamic dependencies and RPATH
-        run: |
-          rm -rf /tmp/whl && mkdir /tmp/whl
-          unzip -q dist/*.whl -d /tmp/whl
-          so=$(ls /tmp/whl/yunpyopt/_core*.so)
-          bad=$(otool -L "$so" | tail -n +2 | grep -v -E '(/usr/lib/|/System/Library/)' || true)
-          if [ -n "$bad" ]; then echo "非系统依赖:"; echo "$bad"; exit 1; fi
-          if otool -l "$so" | grep -q LC_RPATH; then echo "存在 LC_RPATH"; exit 1; fi
-          echo "dylib deps ok"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wheel
-          path: dist/*.whl
+      - uses: ./.github/actions/build-wheel
 
   release:
     name: Create GitHub Release
