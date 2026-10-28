@@ -71,7 +71,7 @@ SDK 的获取优先级：
 
 1. `YUN_SDK_DIR`：已解压的本地 SDK（开发 / 离线 / CI 预置）；
 2. `YUN_SDK_CACHE`（默认 `~/.cache/yunpyopt/sdk/<version>`）中的缓存；
-3. 从 `https://github.com/Hug7/yun/releases/download/v<version>/` 下载并校验 `SHA256SUMS`。
+3. 从 `https://github.com/Hug7/yun/releases/download/<version>/` 下载并校验 `SHA256SUMS`。
 
 覆盖项：`YUN_SDK_VERSION`（版本）、`YUN_SDK_URL` / `YUN_SDK_SHA256`（调试与镜像）。SDK 的产出与版本规则见 [yun SDK 依赖](yun-sdk-dependency.md)。
 

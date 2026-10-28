@@ -20,7 +20,7 @@ only provides from macOS 13.3. pip's macOS platform tags are major-version based
 This release is distributed as a GitHub Release wheel (PyPI is not enabled yet):
 
 ```bash
-pip install https://github.com/Hug7/yunpyopt/releases/download/v0.1.0/yunpyopt-0.1.0-cp311-cp311-macosx_14_0_arm64.whl
+pip install https://github.com/Hug7/yunpyopt/releases/download/0.1.0/yunpyopt-0.1.0-cp311-cp311-macosx_14_0_arm64.whl
 ```
 
 ## Usage
