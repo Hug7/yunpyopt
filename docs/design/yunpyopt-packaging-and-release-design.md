@@ -1,6 +1,6 @@
 # yunpyopt 封装与发布
 
-> 平台：macOS 15.0+（arm64）/ CPython 3.11
+> 平台：macOS 14.0+（arm64）/ CPython 3.11
 > 发布物：GitHub Release wheel（PyPI 未启用）
 > 仓库：[Hug7/yun](https://github.com/Hug7/yun)（C++ 求解器）、[Hug7/yunpyopt](https://github.com/Hug7/yunpyopt)（Python 包）
 > 相关：[yun SDK 依赖](yun-sdk-dependency.md)、[发布手册](../release.md)
