@@ -1,0 +1,30 @@
+name: Setup Poetry
+description: 安装指定版本的 Poetry 并缓存其 cache-dir
+
+inputs:
+  version:
+    description: Poetry 版本
+    required: false
+    default: "2.5.1"
+
+runs:
+  using: composite
+  steps:
+    # 先装 Poetry 再缓存：setup-python 的 `cache: poetry` 会在安装前调用 poetry，
+    # 报 "Unable to locate executable file: poetry"。
+    - name: Install Poetry
+      shell: bash
+      run: python -m pip install "poetry==${{ inputs.version }}"
+
+    - name: Resolve Poetry cache dir
+      id: cache_dir
+      shell: bash
+      run: echo "dir=$(poetry config cache-dir)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache Poetry
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.cache_dir.outputs.dir }}
+        key: poetry-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+        restore-keys: |
+          poetry-${{ runner.os }}-

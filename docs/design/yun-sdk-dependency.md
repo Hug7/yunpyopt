@@ -1,6 +1,6 @@
 # yun SDK 依赖
 
-> 平台：macOS 15.0+（arm64）/ CPython 3.11
+> 平台：macOS 14.0+（arm64）/ CPython 3.11
 > 关联：[总体封装与发布方案](yunpyopt-packaging-and-release-design.md)
 
 ---
