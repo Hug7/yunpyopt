@@ -21,7 +21,7 @@
 1. 合并 `yun` 的 packaging 分支到 `main`。
 2. 触发 `yun` 的 **SDK Release** workflow：
    - 先 `workflow_dispatch`（`version=0.1.0`）演练，确认 tarball 与 `SHA256SUMS`；
-   - 再 push tag `0.1.0`，生成 GitHub Release。
+   - 再 push tag `v0.1.0`，生成 GitHub Release。
 3. 确认 Release 附件：
 
    ```text
@@ -131,11 +131,11 @@ pip install https://github.com/Hug7/yunpyopt/releases/download/v0.2.0/yunpyopt-0
 
 ## 7. 依赖顺序（硬约束）
 
-1. 先发布 `yun` 的 SDK Release（`<yun-version>`，如 `0.1.0`）；
+1. 先发布 `yun` 的 SDK Release（`v<yun-version>`）；
 2. 再更新 `yunpyopt` 的 `yun-sdk-version.txt` 并 push；
 3. 最后打 `yunpyopt` 的 tag。
 
-`yunpyopt` 的 CI/Release 会从 `https://github.com/Hug7/yun/releases/download/<version>/`
+`yunpyopt` 的 CI/Release 会从 `https://github.com/Hug7/yun/releases/download/v<version>/`
 下载 SDK；SDK 不存在时构建会直接失败。`SHA256SUMS` 保证下载内容与 release 一致。
 
 ## 8. 后续：PyPI
