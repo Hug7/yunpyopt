@@ -21,7 +21,10 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+from console_utf8 import use_utf8_stdio
 from sdk_platform import SdkPlatform, detect_platform
+
+use_utf8_stdio()
 
 
 def _run(cmd: list[str]) -> str:

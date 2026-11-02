@@ -14,8 +14,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from console_utf8 import use_utf8_stdio  # noqa: E402
 from fetch_sdk import ensure_sdk  # noqa: E402
 from sdk_platform import SdkPlatform, detect_platform  # noqa: E402
+
+use_utf8_stdio()
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "src" / "yunpyopt"

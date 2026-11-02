@@ -24,7 +24,10 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
+from console_utf8 import use_utf8_stdio
 from sdk_platform import SdkPlatform, UnsupportedPlatformError, detect_platform
+
+use_utf8_stdio()
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSION_FILE = ROOT / "yun-sdk-version.txt"
