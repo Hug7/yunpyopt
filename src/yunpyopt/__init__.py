@@ -5,6 +5,7 @@ carriers, orders, distance matrices, and supporting dictionary types.
 """
 
 from importlib.metadata import PackageNotFoundError, version
+from typing import TYPE_CHECKING
 
 from yunpyopt.domain.schema import (
     CargoOrder,
@@ -34,12 +35,35 @@ from yunpyopt.domain.schema import (
 )
 from yunpyopt.domain.schema_model import SchemaModel
 
+if TYPE_CHECKING:
+    from yunpyopt.solver import (
+        DEFAULT_LOG_LEVEL,
+        RESULT_KEYS,
+        SDK_PLATFORM,
+        SDK_VERSION,
+        Solver,
+        SolveResult,
+        YunSolverError,
+        solve,
+    )
+
 try:
     __version__ = version("yunpyopt")
 except PackageNotFoundError:  # pragma: no cover
     __version__ = "0.0.0"
 
-_LAZY_SOLVER_EXPORTS = frozenset({"Solver", "YunSolverError", "DEFAULT_LOG_LEVEL", "RESULT_KEYS", "solve"})
+_LAZY_SOLVER_EXPORTS = frozenset(
+    {
+        "Solver",
+        "SolveResult",
+        "YunSolverError",
+        "DEFAULT_LOG_LEVEL",
+        "RESULT_KEYS",
+        "SDK_VERSION",
+        "SDK_PLATFORM",
+        "solve",
+    }
+)
 
 
 def __getattr__(name: str) -> object:
@@ -87,8 +111,11 @@ __all__ = [
     "SchemaModel",
     # solver（按需加载）
     "Solver",
+    "SolveResult",
     "YunSolverError",
     "DEFAULT_LOG_LEVEL",
     "RESULT_KEYS",
+    "SDK_VERSION",
+    "SDK_PLATFORM",
     "solve",
 ]
