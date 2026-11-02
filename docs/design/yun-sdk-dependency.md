@@ -1,172 +1,156 @@
 # yun SDK 依赖
 
-> 平台：macOS 14.0+（arm64）/ CPython 3.11
+> 平台：macOS arm64 / Linux x86_64 / Linux arm64 / Windows x86_64；CPython 3.11
 > 关联：[总体封装与发布方案](yunpyopt-packaging-and-release-design.md)
+> 上游文档：[yun SDK 使用手册](https://github.com/Hug7/yun/blob/main/docs/sdk_guide.md)
 
 ---
 
 ## 1. 概览
 
-`yunpyopt` 不引入 `yun` 源码，只消费 `yun` GitHub Release 提供的**预编译 SDK**：
-
-- SDK 内含 headers、单体静态库、binding 源码与 CMake 入口；
-- `yunpyopt` 用 `yun-sdk-version.txt` 固定 SDK 版本，构建时只编译 pybind11 binding；
-- `pybind11` 由 `yunpyopt` 的 `build-system.requires` 提供，SDK 不附带。
+`yunpyopt` 不引入 `yun` 源码，只消费 `yun` GitHub Release 提供的**预编译 SDK**。
+SDK 内含 headers、单体静态库、binding 源码与 CMake 入口；`yunpyopt` 只编译 pybind11
+binding，`pybind11` 由 `yunpyopt` 的 `build-system.requires` 提供。
 
 ```text
-yun (源码 + Conan)  --build_sdk.py-->  yun-sdk-<v>-macos-arm64.tar.gz
-                                              |
-                                              v
-yunpyopt (CMake + pybind11)  --build_ext.py-->  yunpyopt/_core*.so  -->  wheel
+yun (源码 + Conan)  --scripts/build_sdk.py-->  yun-sdk-<v>-<platform>.tar.gz
+                                                        |
+                                                        v
+yunpyopt (CMake + pybind11) --scripts/build_ext.py--> yunpyopt/_core*.so|.pyd --> wheel
 ```
 
 ---
 
-## 2. SDK 内容
+## 2. 平台矩阵
+
+| 平台 | 资产 | 编译器/运行时 | 库文件 | wheel 标签 |
+| --- | --- | --- | --- | --- |
+| macOS arm64 | `yun-sdk-0.2.0-macos-arm64.tar.gz` | AppleClang 16+，macOS 14.0+ | `lib/libyun_sdk.a` | `macosx_14_0_arm64` |
+| Linux x86_64 | `yun-sdk-0.2.0-linux-x86_64.tar.gz` | GCC 14，glibc ≥ 2.28 | `lib/libyun_sdk.a` | `manylinux_2_28_x86_64` |
+| Linux arm64 | `yun-sdk-0.2.0-linux-arm64.tar.gz` | GCC 14，glibc ≥ 2.28 | `lib/libyun_sdk.a` | `manylinux_2_28_aarch64` |
+| Windows x86_64 | `yun-sdk-0.2.0-windows-x86_64.tar.gz` | clang-cl 17+ + MSVC STL，`/MD` | `lib/yun_sdk.lib` | `win_amd64` |
+
+SDK 版本由 [`yun-sdk-version.txt`](../../yun-sdk-version.txt) 固定，当前为 `0.2.0`。
+Release 附带合并的 `SHA256SUMS`；同一版本不覆盖发布。
+
+不在支持范围：macOS Intel、Windows arm64、musl Linux、MSVC `cl.exe`、MinGW。
+
+---
+
+## 3. SDK 内容
 
 ```text
-yun-sdk-<version>-macos-arm64/
+yun-sdk-<version>-<platform>/
 ├── CMakeLists.txt                  # 消费方构建 _core 的入口
 ├── VERSION
 ├── SDK_PLATFORM
+├── LICENSE
 ├── include/
-│   ├── yun/
-│   │   ├── common/
-│   │   ├── scenario/
-│   │   ├── problem/
-│   │   ├── algorithm/
-│   │   └── solver/
-│   ├── fmt/
-│   ├── spdlog/
-│   ├── yaml-cpp/
-│   ├── magic_enum/
-│   └── libfork/
-├── lib/libyun_sdk.a                # yun_* + spdlog/fmt/yaml-cpp/lua 单体静态库
+│   ├── yun/{common,scenario,problem,algorithm,solver}/
+│   ├── fmt/ spdlog/ yaml-cpp/ magic_enum/ sol/ libfork/ lua.hpp ...
+├── lib/
+│   ├── libyun_sdk.a                # Windows: yun_sdk.lib
+│   └── cmake/yun/yunConfig.cmake
+│       cmake/yun/yunConfigVersion.cmake
 └── src/yun_solver_binding.cpp
 ```
 
-- 单体静态库由 `libtool -static` 合并，消费方只链接一个 `.a`；
-- 依赖头文件按 binding 编译时的实际 include 路径收集，消费方不需要 Conan；
-- 生成的 `_core.so` 只链系统库（`libc++` / `libSystem`），不携带第三方 dylib。
+`libyun_sdk.a` / `yun_sdk.lib` 已合并 `yun_solver`、`yun_algorithm`、`yun_problem`、
+`yun_scenario` 与 fmt/spdlog/yaml-cpp/lua 的静态库；`libfork`、`sol2`、`magic_enum`
+是 header-only。生成的 `_core` 只依赖系统库（Windows 另依赖 MSVC 运行库）。
 
----
-
-## 3. 生产端（yun）
-
-### 3.1 `scripts/build_sdk.py`
-
-1. CMake Release 配置：`YUN_BUILD_PYTHON=ON`、`YUN_BUILD_TESTS=OFF`、`CMAKE_OSX_DEPLOYMENT_TARGET=14.0`；脚本生成 `include(default) + compiler.cppstd=20` 的 Conan host profile。
-2. 构建 `yun_python_binding`，取：
-   - `compile_commands.json` 中 binding 的 include 路径；
-   - `python/CMakeFiles/yun_python_binding.dir/link.txt` 中的完整 `.a` 列表。
-3. 复制 yun 五个组件与依赖的头文件。
-4. `libtool -static -o lib/libyun_sdk.a` 合并 yun 与第三方静态库。
-5. 复制 `python/yun_solver_binding.cpp` 与 `python/sdk/CMakeLists.txt`。
-6. 生成 `dist/sdk/yun-sdk-<version>-macos-arm64.tar.gz` 与 `SHA256SUMS`。
-
-### 3.2 SDK 的 `CMakeLists.txt`
+SDK 的 `CMakeLists.txt`：
 
 ```cmake
+find_package(yun CONFIG REQUIRED HINTS "${CMAKE_CURRENT_SOURCE_DIR}")
 find_package(Python3 REQUIRED COMPONENTS Interpreter Development.Module)
 find_package(pybind11 CONFIG REQUIRED)
 
-add_library(yun_sdk STATIC IMPORTED)
-set_target_properties(yun_sdk PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/lib/libyun_sdk.a")
-target_include_directories(yun_sdk INTERFACE ...)
-
 pybind11_add_module(yun_python_binding WITH_SOABI src/yun_solver_binding.cpp)
-target_compile_definitions(yun_python_binding PRIVATE
-    SPDLOG_COMPILED_LIB SPDLOG_FMT_EXTERNAL YAML_CPP_STATIC_DEFINE)
-target_link_libraries(yun_python_binding PRIVATE yun_sdk)
+target_link_libraries(yun_python_binding PRIVATE yun::sdk)
+set_target_properties(yun_python_binding PROPERTIES OUTPUT_NAME "_core")
 ```
 
-### 3.3 `.github/workflows/sdk-release.yml`
-
-- 触发：`v*` tag 或 `workflow_dispatch`（输入 `version`）；
-- 校验 tag/输入版本与 `CMakeLists.txt` 的 `project(yun VERSION ...)` 一致；
-- `macos-15`（Xcode 16+）+ Python 3.11 + Conan 缓存；
-- 上传 `dist/*`（tarball + `SHA256SUMS`）；tag 触发时创建 GitHub Release。
-
-### 3.4 版本规则
-
-SDK 版本 = `project(yun VERSION ...)` = tag `v<version>`（与 yunpyopt 一致）；已发布版本不覆盖，C++ 变更即 bump 版本。
+`yunConfig.cmake` 导出 `yun::sdk`，携带 include 目录、`cxx_std_20`、
+`SPDLOG_COMPILED_LIB;SPDLOG_FMT_EXTERNAL;YAML_CPP_STATIC_DEFINE` 与平台系统库
+（Linux `Threads::Threads;dl;m`，macOS `Threads::Threads`，Windows 无）。
 
 ---
 
-## 4. 消费端（yunpyopt）
-
-### 4.1 版本固定
-
-```text
-yun-sdk-version.txt   # 当前 0.1.0
-```
-
-下载地址：
-
-```text
-https://github.com/Hug7/yun/releases/download/v<version>/yun-sdk-<version>-macos-arm64.tar.gz
-https://github.com/Hug7/yun/releases/download/v<version>/SHA256SUMS
-```
-
-### 4.2 `scripts/fetch_sdk.py`
+## 4. 获取 SDK（`scripts/fetch_sdk.py`）
 
 优先级：
 
-1. `YUN_SDK_DIR`：已解压 SDK（需存在 `lib/libyun_sdk.a`）；
-2. `YUN_SDK_CACHE`（默认 `~/.cache/yunpyopt/sdk/<version>`）缓存；
-3. 下载 → 校验 `SHA256SUMS` → 解压。
+1. `YUN_SDK_DIR`：本地已解压 SDK（需存在 `lib/<platform lib>`）；
+2. `YUN_SDK_CACHE`（默认 `~/.cache/yunpyopt/sdk/<version>/<tag>`）；
+3. 从 `https://github.com/Hug7/yun/releases/download/v<version>/` 下载。
 
-覆盖项：`YUN_SDK_VERSION`、`YUN_SDK_URL`、`YUN_SDK_SHA256`、`YUN_SDK_SHA256SUMS_URL`（调试与镜像）。
+下载后用 Release 的 `SHA256SUMS` 校验；解压到暂存目录，校验通过后再整体改名，避免半成品
+缓存。可覆盖项：
 
-### 4.3 `scripts/build_ext.py`
+| 变量 | 作用 |
+| --- | --- |
+| `YUN_SDK_VERSION` | 覆盖 `yun-sdk-version.txt` |
+| `YUN_SDK_DIR` | 使用本地 SDK，跳过下载 |
+| `YUN_SDK_CACHE` | 缓存根目录 |
+| `YUN_SDK_URL` | 覆盖 tarball 地址（测试/镜像） |
+| `YUN_SDK_SHA256` | 直接指定 tarball 校验值 |
+| `YUN_SDK_SHA256SUMS_URL` | 覆盖 `SHA256SUMS` 地址 |
 
-1. `ensure_sdk()` 取得 SDK；
-2. `cmake -S <sdk> -B build/yun-sdk-binding`，传 `Python3_EXECUTABLE`、`pybind11_DIR`、`CMAKE_OSX_DEPLOYMENT_TARGET`、`CMAKE_OSX_ARCHITECTURES=arm64`、`CMAKE_SKIP_RPATH=ON`；
-3. 构建 `yun_python_binding`；
-4. 复制 `_core*.so` 到 `src/yunpyopt/`，清理旧版本并冒烟导入。
-
-### 4.4 `pyproject.toml`
-
-```toml
-[build-system]
-requires = ["poetry-core>=2.5,<3", "pybind11>=2.13,<4"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.build]
-script = "scripts/build_ext.py"
-```
-
-`cmake` 由宿主机提供（CI 的 macOS runner 预装，本地需安装）。
-
-### 4.5 CI / Release
-
-```yaml
-- uses: actions/cache@v4
-  with:
-    path: ~/.cache/yunpyopt/sdk
-    key: yun-sdk-${{ hashFiles('yun-sdk-version.txt') }}
-```
-
-`poetry install` 与 `python -m build` 触发 hook 下载并构建扩展；release 仍执行 `scripts/fix_wheel_tag.py` 修正平台标签。
+平台识别统一在 `scripts/sdk_platform.py`，`fetch_sdk.py`、`build_ext.py`、
+`fix_wheel_tag.py` 共用，避免三处漂移。
 
 ---
 
-## 5. 发布顺序（硬约束）
+## 5. 构建扩展（`scripts/build_ext.py`）
 
-1. `yun` 发布 SDK Release（`v<yun-version>`）；
-2. `yunpyopt` 更新 `yun-sdk-version.txt`（版本变化时）并 push；
-3. `yunpyopt` 打 tag 发布 wheel。
+1. `detect_platform()` 得到 `SdkPlatform`；
+2. `_check_toolchain()`：CMake ≥ 3.24；Linux 检查 GCC ≥ 13.2；Windows 检查
+   `clang-cl` + `ninja`；
+3. `ensure_sdk(spec=...)` 取得 SDK；
+4. CMake 配置 `build/yun-sdk-binding`：
 
-SDK 不存在时，`fetch_sdk.py` 报错并提示先运行 `yun` 的 SDK Release workflow。
+   | 平台 | 关键参数 |
+   | --- | --- |
+   | macOS | `CMAKE_OSX_DEPLOYMENT_TARGET=14.0`、`CMAKE_OSX_ARCHITECTURES=arm64` |
+   | Linux | `CMAKE_POSITION_INDEPENDENT_CODE=ON`、`CMAKE_CXX_COMPILER=$CXX`、`-static-libstdc++ -static-libgcc` |
+   | Windows | `-G Ninja`、`CMAKE_CXX_COMPILER=clang-cl`、`CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL` |
+
+5. 构建 target `yun_python_binding`；
+6. 断言构建目录恰好一个 `_core*<suffix>`，清理 `src/yunpyopt/` 下旧扩展并复制；
+7. 生成 `src/yunpyopt/_build_info.py`（`SDK_VERSION` / `SDK_PLATFORM`）；
+8. 冒烟导入，打印 `RESULT_KEYS`。
+
+扩展文件：
+
+| 平台 | 文件名示例 |
+| --- | --- |
+| macOS | `_core.cpython-311-darwin.so` |
+| Linux | `_core.cpython-311-x86_64-linux-gnu.so` |
+| Windows | `_core.cp311-win_amd64.pyd` |
+
+`src/yunpyopt/_core*` 与 `_build_info.py` 是构建产物：不提交，也不写进 `.gitignore`
+（poetry-core 会跳过 VCS ignored 文件，导致 wheel 缺失扩展）。
 
 ---
 
 ## 6. 约束
 
-- **SDK 资产不可变**：同一版本不覆盖发布，否则 `SHA256SUMS` 变化影响复现；
-- **ABI 匹配**：SDK 为 macOS arm64、C++20、部署目标 14.0，消费方必须一致；
-- **头文件集合**：SDK 收集 binding 实际使用的 fmt/spdlog/yaml-cpp/magic_enum/libfork 头文件，升级这些依赖后需重新发布 SDK；
-- **体积**：tarball 约 6.7 MB；
-- **本地 Conan 缓存**：若部分依赖以更高 macOS 目标构建，链接会出现 "built for newer macOS" 警告；发布产物以全新 Conan 缓存的 CI 结果为准；
-- **首次发布顺序**：必须先有 `yun` SDK Release，`yunpyopt` 的 CI/Release 才能通过。
+- **ABI 匹配**：SDK 是同一编译器家族的静态库；Linux GCC、macOS AppleClang、Windows
+  clang-cl，不做跨编译器 ABI 承诺。升级 SDK 版本必须重新构建扩展。
+- **Linux 基线**：manylinux_2_28（glibc ≥ 2.28）；扩展静态链接 `libstdc++`/`libgcc`，
+  避免要求 GCC 14 运行库。
+- **Windows 运行时**：SDK 以 `/MD` 构建，消费端必须同样 `/MD`；wheel 不打包
+  `MSVCP140.dll` / `VCRUNTIME140.dll`，用户需安装 VC++ 2015-2022 x64 运行库。
+- **macOS 最低版本**：SDK 部署目标 14.0；wheel tag 取 `macosx_14_0_arm64`。
+- **SDK 不可变**：同一版本不覆盖发布，否则 `SHA256SUMS` 变化影响复现。
+
+---
+
+## 7. 发布顺序（硬约束）
+
+1. `yun` 发布 `v<version>` SDK Release（四个 tarball + `SHA256SUMS`）；
+2. `yunpyopt` 更新 `yun-sdk-version.txt` 并 push；
+3. `yunpyopt` 打 `v<version>` tag，触发四平台 wheel 构建与 Release。
+
+SDK 不存在时 `fetch_sdk.py` 报错并提示先运行 `yun` 的 SDK Release workflow。
