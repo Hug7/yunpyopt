@@ -9,51 +9,152 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    name: Build wheel
+  version:
+    name: Verify version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tag, package version and SDK pin
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          import tomllib
+          from pathlib import Path
+
+          version = tomllib.loads(Path("pyproject.toml").read_text())["tool"]["poetry"]["version"]
+          sdk = Path("yun-sdk-version.txt").read_text().strip()
+          assert sdk == "0.2.0", f"unexpected SDK pin: {sdk}"
+          if os.environ["GITHUB_REF"].startswith("refs/tags/"):
+              tag = os.environ["GITHUB_REF_NAME"]
+              assert tag == f"v{version}", f"tag {tag} != v{version}"
+          print("version:", version, "sdk:", sdk)
+          PY
+
+  build-macos:
+    name: Build (macos-arm64)
+    needs: version
     runs-on: macos-15
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       MACOSX_DEPLOYMENT_TARGET: "14.0"
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Verify tag matches pyproject version
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          python - <<'PY'
-          import os, tomllib
-          from pathlib import Path
-          version = tomllib.loads(Path("pyproject.toml").read_text())["tool"]["poetry"]["version"]
-          tag = os.environ["GITHUB_REF_NAME"]
-          assert tag == f"v{version}", f"tag {tag} != v{version}"
-          print("version:", version)
-          PY
-
       - name: Install build tools
         run: |
           python -m pip install --upgrade pip
           python -m pip install build twine wheel
-
       - uses: ./.github/actions/build-wheel
+        with:
+          artifact-name: wheel-macos-arm64
+
+  build-linux:
+    name: Build (${{ matrix.name }})
+    needs: version
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x86_64
+            os: ubuntu-24.04
+            container: quay.io/pypa/manylinux_2_28_x86_64
+          - name: linux-arm64
+            os: ubuntu-24.04-arm
+            container: quay.io/pypa/manylinux_2_28_aarch64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain and build deps
+        shell: bash
+        run: |
+          source /opt/rh/gcc-toolset-14/enable
+          PY=/opt/python/cp311-cp311/bin/python
+          "$PY" -m pip install --upgrade pip
+          "$PY" -m pip install build twine wheel auditwheel
+          dirname "$PY" >> "$GITHUB_PATH"
+          dirname "$(command -v g++)" >> "$GITHUB_PATH"
+          echo "CC=$(command -v gcc)" >> "$GITHUB_ENV"
+          echo "CXX=$(command -v g++)" >> "$GITHUB_ENV"
+      - uses: ./.github/actions/build-wheel
+        with:
+          artifact-name: wheel-${{ matrix.name }}
+
+  build-windows:
+    name: Build (windows-x86_64)
+    needs: version
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          architecture: x64
+      - uses: TheMrMilchmann/setup-msvc-dev@v4.1.0
+        with:
+          arch: x64
+      - name: Install LLVM / Ninja / build tools
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "C:\Program Files\LLVM\bin\clang-cl.exe")) {
+            choco install llvm -y --no-progress
+          }
+          "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+          python -m pip install --upgrade pip
+          python -m pip install ninja build twine wheel
+      - uses: ./.github/actions/build-wheel
+        with:
+          artifact-name: wheel-windows-x86_64
 
   release:
     name: Create GitHub Release
-    needs: build
+    needs: [build-macos, build-linux, build-windows]
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    environment: release
+    timeout-minutes: 20
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: wheel
+          pattern: wheel-*
           path: dist
+          merge-multiple: true
+
+      - name: Verify four wheels and build checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          python - <<'PY'
+          from pathlib import Path
+
+          wheels = sorted(Path(".").glob("*.whl"))
+          expected = {
+              "cp311-cp311-macosx_14_0_arm64.whl",
+              "cp311-cp311-manylinux_2_28_x86_64.whl",
+              "cp311-cp311-manylinux_2_28_aarch64.whl",
+              "cp311-cp311-win_amd64.whl",
+          }
+          assert len(wheels) == 4, wheels
+          names = {wheel.name for wheel in wheels}
+          assert len(names) == 4, names
+          for suffix in expected:
+              assert any(name.endswith(suffix) for name in names), (suffix, names)
+          print("wheels ok:", sorted(names))
+          PY
+          sha256sum -- ./*.whl | sort -k2 > SHA256SUMS
+          cat SHA256SUMS
+
       - uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.whl
+          files: dist/*
           generate_release_notes: true
