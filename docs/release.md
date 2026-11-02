@@ -55,7 +55,7 @@ poetry lock
 echo 0.2.0 > yun-sdk-version.txt
 ```
 
-更新 `CHANGELOG.md`（0.2.0 条目；中文规范见 Task 11），然后本地校验：
+更新 `CHANGELOG.md`（0.2.0 条目，保持中文），然后本地校验：
 
 ```bash
 poetry check --lock

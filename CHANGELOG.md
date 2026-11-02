@@ -1,54 +1,69 @@
-# Changelog
+# 变更日志
 
-All notable changes to this project will be documented in this file.
+本文件记录项目所有值得注意的变更。
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+格式基于 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)，
+版本号遵循 [语义化版本](https://semver.org/spec/v2.0.0.html)。
+
+## [0.2.0] — Unreleased
+
+### 新增（Added）
+
+- 支持 macOS arm64、Linux x86_64、Linux arm64、Windows x86_64 四个平台的预编译 wheel
+- 新增 `plan_summary` 结果（指向 `PlanSummary.json`）
+- 新增 `SolveResult` 类型与 Python 版 `Solver` 包装（支持 context manager、`output_dir`）
+- 新增 `SDK_VERSION` / `SDK_PLATFORM`，便于定位构建所用 SDK 与平台
+- CI 增加四平台构建、安装与求解冒烟
+
+### 变更（Changed）
+
+- `yun-sdk-version.txt` 升级到 `0.2.0`
+- `fetch_sdk.py` / `build_ext.py` / `fix_wheel_tag.py` 平台化，支持 `.a`/`.lib`、`.so`/`.pyd`
+- Linux wheel 使用 `manylinux_2_28` 标签，并静态链接 `libstdc++`/`libgcc`
+- Windows wheel 使用 `win_amd64` 标签，保持 `/MD` 运行时
+
+### 移除（Removed）
+
+- 移除“仅 macOS 14.0+ arm64”的文档与错误提示
 
 ## [0.1.0] — Unreleased
 
-### Added
+### 新增（Added）
 
-- Domain schema dataclasses for logistics optimization:
-  - `Dimension`, `Label`, `LabelValue`, `LabelApply` (base dictionaries)
-  - `Location`, `LocationLabelValue`, `LocationAvailableVehicle`, `WorkCalendarDaily`, `WorkCalendarWeekly`, `WorkFixed`, `WorkEffect` (location)
-  - `VehicleModel`, `VehicleModelDimensionValue`, `VehicleModelLabelValue` (vehicle models)
-  - `Carrier`, `CarrierLabelValue`, `Vehicle` (carriers)
-  - `DistMatrix` (route network)
-  - `CargoOrder`, `CargoSubOrder`, `CargoSubOrderDimensionValue`, `CargoSubOrderLabelValue` (orders)
-- Concise `__repr__` for all domain models
-- Package-level `__version__` via `importlib.metadata`
-- `py.typed` marker for PEP 561 compliance
-- `typing-extensions` runtime dependency (for `typing.override` on Python 3.11)
-- `yunpyopt.solver.solve()` / `Solver` for in-process calls into the `yun` solver
-- Lazy `from yunpyopt import solve` export, so domain-only users do not need the binary
-- `tests/data/c1_2_1` fixture and solver integration tests
-- PEP 517 build hook (`scripts/build_ext.py`) that downloads the pinned prebuilt
-  `yun` SDK (headers + monolithic static lib + binding source) and builds
-  `yunpyopt._core` with pybind11
-- `scripts/fetch_sdk.py` to download/verify/cache the SDK (`SHA256SUMS`)
-- `scripts/fix_wheel_tag.py` to correct the wheel platform tag from the extension's
-  actual `LC_BUILD_VERSION` minos
-- GitHub Actions CI (macOS arm64, CPython 3.11) covering lint, typecheck, extension
-  build, tests, wheel build/validation and a clean-venv install/solve
-- `release.yml`: tag-driven wheel build and GitHub Release (PyPI publishing is not
-  enabled yet)
+- 面向物流优化的领域 schema 数据类：
+  - `Dimension`、`Label`、`LabelValue`、`LabelApply`（基础字典）
+  - `Location`、`LocationLabelValue`、`LocationAvailableVehicle`、`WorkCalendarDaily`、`WorkCalendarWeekly`、`WorkFixed`、`WorkEffect`（位置）
+  - `VehicleModel`、`VehicleModelDimensionValue`、`VehicleModelLabelValue`（车型）
+  - `Carrier`、`CarrierLabelValue`、`Vehicle`（承运商）
+  - `DistMatrix`（路线网络）
+  - `CargoOrder`、`CargoSubOrder`、`CargoSubOrderDimensionValue`、`CargoSubOrderLabelValue`（订单）
+- 所有领域模型提供简洁的 `__repr__`
+- 通过 `importlib.metadata` 提供包级 `__version__`
+- 提供 `py.typed` 标记，符合 PEP 561
+- 新增 `typing-extensions` 运行时依赖（用于 Python 3.11 的 `typing.override`）
+- 新增 `yunpyopt.solver.solve()` / `Solver`，用于进程内调用 `yun` 求解器
+- `from yunpyopt import solve` 采用懒加载，只用领域模型的用户无需二进制扩展
+- 新增 `tests/data/c1_2_1` 夹具与求解器集成测试
+- 新增 PEP 517 构建钩子（`scripts/build_ext.py`）：下载固定版本的预编译 `yun` SDK
+  （头文件 + 单体静态库 + binding 源码），并用 pybind11 构建 `yunpyopt._core`
+- 新增 `scripts/fetch_sdk.py`，用于下载、校验并缓存 SDK（`SHA256SUMS`）
+- 新增 `scripts/fix_wheel_tag.py`，按扩展的实际 `LC_BUILD_VERSION` minos 修正 wheel 平台标签
+- 新增 GitHub Actions CI（macOS arm64、CPython 3.11），覆盖 lint、类型检查、扩展构建、
+  测试、wheel 构建/校验与 clean venv 安装/求解
+- 新增 `release.yml`：按 tag 构建 wheel 并创建 GitHub Release（暂未启用 PyPI 发布）
 
-### Changed
+### 变更（Changed）
 
-- `yun` SDK version is pinned in `yun-sdk-version.txt`; no `yun` source checkout or
-  Conan is required in `yunpyopt`
-- The wheel is platform-tagged (`cp311-cp311-macosx_14_0_arm64`) instead of the
-  previous `py3-none-any`
-- Supported platform is macOS 14.0+ arm64, CPython 3.11 (the C++ code uses
-  `std::format`, which requires macOS 13.3; the wheel tag is rounded to 14_0 because
-  pip's macOS tags are major-version based)
-- `solver.solve()` accepts `PathLike`, validates result keys against the binding, and
-  raises a clear `ImportError` if `yunpyopt._core` is missing
-- Lint/typecheck configuration updated; `ruff` and `mypy` are clean
+- `yun` SDK 版本固定在 `yun-sdk-version.txt`；`yunpyopt` 不再需要 `yun` 源码 checkout 或 Conan
+- wheel 使用平台标签（`cp311-cp311-macosx_14_0_arm64`），不再是 `py3-none-any`
+- 支持平台为 macOS 14.0+ arm64、CPython 3.11（C++ 代码使用 `std::format`，需要
+  macOS 13.3；由于 pip 的 macOS 标签按 major 版本枚举，wheel 标签向上取整为 14_0）
+- `solver.solve()` 支持 `PathLike`，会按 binding 校验结果 key；缺少 `yunpyopt._core` 时
+  抛出清晰的 `ImportError`
+- 更新 lint/类型检查配置；`ruff` 与 `mypy` 通过
 
-### Removed
+### 移除（Removed）
 
-- `yun` git submodule (`third_party/yun`)
-- `yun`'s `BUILD_PY.sh` (hard-coded `python3.11` and the old `yunpy` output path);
-  use `yun/scripts/build_python_extension.py` instead
+- 移除 `yun` git submodule（`third_party/yun`）
+- 移除 `yun` 的 `BUILD_PY.sh`（硬编码 `python3.11` 和旧的 `yunpy` 输出路径）；
+  改用 `yun/scripts/build_python_extension.py`
