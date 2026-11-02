@@ -22,6 +22,12 @@
 - Linux wheel 使用 `manylinux_2_28` 标签，并静态链接 `libstdc++`/`libgcc`
 - Windows wheel 使用 `win_amd64` 标签，保持 `/MD` 运行时
 
+### 修复（Fixed）
+
+- 修复 Windows wheel 未包含 `_core*.pyd` 的问题（`*.py[codz]` 误匹配 `.pyd`）
+- 修复 Windows 构建脚本在 cp1252 控制台下的中文编码错误
+- 修复 Linux wheel 平台标签出现 `manylinux_2_26...manylinux_2_28...` 复合标签的问题
+
 ### 移除（Removed）
 
 - 移除“仅 macOS 14.0+ arm64”的文档与错误提示

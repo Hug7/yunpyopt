@@ -29,6 +29,12 @@ jobs:
           if git ls-files --error-unmatch src/yunpyopt/_build_info.py 2>/dev/null; then
             echo "src/yunpyopt/_build_info.py must not be committed"; exit 1
           fi
+          # *.py[codz] 会匹配 .pyd；如果被 ignore，poetry-core 会把扩展排除出 wheel。
+          for artifact in src/yunpyopt/_core.cpython-311-darwin.so src/yunpyopt/_core.cp311-win_amd64.pyd; do
+            if git check-ignore --no-index -q "$artifact"; then
+              echo "$artifact must not be git-ignored"; exit 1
+            fi
+          done
 
       - uses: actions/setup-python@v5
         with:
