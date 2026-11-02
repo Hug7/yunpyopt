@@ -1,9 +1,9 @@
 # yunpyopt
 
-Python caller for the [`yun`](https://github.com/Hug7/yun) VRP/ALNS solver.
+[`yun`](https://github.com/Hug7/yun) VRP/ALNS 求解器的 Python 调用层。
 
-`yunpyopt` ships the pure-Python domain models plus the compiled `yunpyopt._core`
-extension (pybind11) for in-process solving. Four platforms are supported:
+`yunpyopt` 包含纯 Python 领域模型，以及用于进程内求解的 pybind11 扩展
+`yunpyopt._core`。目前支持四个平台：
 
 | 平台 | 架构 | 最低运行时 | wheel 标签 |
 | --- | --- | --- | --- |
@@ -14,7 +14,7 @@ extension (pybind11) for in-process solving. Four platforms are supported:
 
 当前只发布 CPython 3.11。macOS Intel、Windows arm64、musl Linux（Alpine）暂不支持。
 
-## Install
+## 安装
 
 0.2.0 通过 GitHub Release 分发（PyPI 尚未启用），按平台选择对应 wheel：
 
@@ -36,14 +36,26 @@ Windows 需要安装 **Microsoft Visual C++ 2015-2022 Redistributable (x64)**；
 `MSVCP140.dll` / `VCRUNTIME140.dll`。Linux wheel 已静态链接 `libstdc++`/`libgcc`，
 不要求系统安装 GCC 14 的运行库。
 
-## Usage
+安装后可以先确认包版本、SDK 版本与目标平台：
+
+```python
+import yunpyopt
+
+print(yunpyopt.__version__)      # yunpyopt 包版本
+print(yunpyopt.SDK_VERSION)      # 编译 _core 时使用的 yun SDK 版本
+print(yunpyopt.SDK_PLATFORM)     # macos-arm64 / linux-x86_64 / linux-arm64 / windows-x86_64
+```
+
+## 用法
+
+### 一行求解
 
 ```python
 from pathlib import Path
 
 from yunpyopt import solve
 
-result = solve("path/to/c1_2_1", log_level="warning")
+result = solve("path/to/c1_2_1", log_level="info")
 # {
 #     "plan_summary": ".../PlanSummary.json",
 #     "loads": ".../Loads.json",
@@ -59,21 +71,41 @@ else:
     print(Path(result["loads"]))
 ```
 
-`solve()` 接受 `str` 或 `os.PathLike`，求解期间释放 GIL，可重复调用。每次调用使用新的
-`request_id`；同一个 `Solver` 实例重复 `solve()` 则复用同一个输出目录。
+`solve()` 接受 `str` 或 `os.PathLike`，求解期间释放 GIL，可重复调用。每次调用都会创建新的
+`Solver`，因此使用新的 `request_id` 和新的输出目录。
 
-也可以显式使用 `Solver`：
+### 显式使用 `Solver`
+
+需要读取输出目录、复用同一个求解上下文时，可以直接使用 `Solver`：
 
 ```python
+from pathlib import Path
+
 from yunpyopt import Solver
 
-with Solver("path/to/c1_2_1", log_level="warning") as solver:
+with Solver("path/to/c1_2_1", log_dir="path/to/logs", log_level="info") as solver:
     result = solver.solve()
-    print(solver.output_dir)
+    print(solver.output_dir)   # <case_dir>/output/<request_id>
+    print(solver.case_dir)     # 归一化后的案例绝对路径
+    print(solver.log_level)
+
+assert result["loads"] is not None
+loads = Path(result["loads"])
+```
+
+同一个 `Solver` 实例重复调用 `solve()` 会复用同一个 `request_id` 和输出目录，后一次会覆盖
+前一次的产物；如果需要新的 `request_id`，请新建 `Solver` 或调用模块级 `solve()`。
+
+`solve()` / `Solver.solve()` 的返回值是 `SolveResult`（`TypedDict`），也可以用于类型标注：
+
+```python
+from yunpyopt import SolveResult, solve
+
+result: SolveResult = solve("path/to/c1_2_1")
 ```
 
 案例目录需要场景 CSV、`Parameter.yaml` 与 `Strategy.lua`，且必须可写（求解会在其下创建
-`output/<request_id>/`）。
+`output/<request_id>/`）。`log_dir` 可选；不传时该参数关闭，日志仍会写到产物目录。
 
 ### 结果 key
 
@@ -86,9 +118,17 @@ with Solver("path/to/c1_2_1", log_level="warning") as solver:
 | `infeasible` | `InfeasibleCargoOrders.json` | precheck 判定的不可解订单 |
 
 `loads is None` 不一定是失败：precheck 拦截整条链路时，`infeasible` 有值而 `loads` 为
-`None`。
+`None`；此时 `plan_summary` 也可能为 `None`。
 
-## Build from source
+结果文件都是 JSON，可以直接读取：
+
+```python
+import json
+
+loads = json.loads(Path(result["loads"]).read_text(encoding="utf-8"))
+```
+
+## 从源码构建
 
 前置条件（所有平台）：
 
@@ -135,7 +175,10 @@ export CC="$(command -v gcc)" CXX="$(command -v g++)"
 "$PY" scripts/fix_wheel_tag.py dist
 ```
 
-`fix_wheel_tag.py` 会调用 `auditwheel repair --plat manylinux_2_28_* --only-plat` 并校验结果。
+`fix_wheel_tag.py` 会调用 `auditwheel repair --plat manylinux_2_28_* --only-plat`，并校验结果。
+`--only-plat` 保证 wheel 只带目标 `manylinux_2_28` 标签，不会出现
+`manylinux_2_26.manylinux_2_28` 这类复合标签。
+
 Linux 扩展使用 `-static-libstdc++ -static-libgcc`，避免依赖 GCC 14 的
 `libstdc++.so.6`。
 
@@ -155,6 +198,7 @@ python scripts\fix_wheel_tag.py dist
 ```
 
 Windows 只支持 clang-cl（不支持 MSVC `cl.exe` 或 MinGW），运行时为动态 CRT `/MD`。
+构建脚本会把标准输出切到 UTF-8，避免 cp1252 控制台下打印中文失败。
 
 ### 本地产物
 
@@ -169,8 +213,9 @@ poetry run python scripts/fix_wheel_tag.py dist
 
 `src/yunpyopt/_core*.so` / `.pyd` 与 `src/yunpyopt/_build_info.py` 是构建产物：**不要提交**，
 也不要写进 `.gitignore`（poetry-core 会跳过 VCS ignored 文件，导致 wheel 缺失扩展）。
+注意 `.gitignore` 的 `*.py[codz]` 会匹配 Windows 的 `.pyd`，Windows 扩展需要显式取消忽略。
 
-## Development
+## 开发
 
 ```bash
 poetry run ruff check src tests scripts
@@ -179,9 +224,10 @@ poetry run mypy src
 YUNPYOPT_REQUIRE_CORE=1 poetry run pytest -v
 ```
 
-发布流程见 [docs/release.md](docs/release.md)。
+发布流程见 [docs/release.md](docs/release.md)，SDK 依赖说明见
+[docs/design/yun-sdk-dependency.md](docs/design/yun-sdk-dependency.md)。
 
-## Known limitations
+## 已知限制
 
 - 仅 CPython 3.11；3.12/3.13 尚未提供 wheel。
 - 不提供 macOS Intel、Windows arm64、musl Linux 产物。
@@ -189,6 +235,6 @@ YUNPYOPT_REQUIRE_CORE=1 poetry run pytest -v
 - `Strategy.lua` 的 `max_iter` 目前不影响导出结果：ALNS 最优解没有写回 workspace，导出的是
   KNN 构造解。
 
-## License
+## 许可证
 
 Apache-2.0
