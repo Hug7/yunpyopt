@@ -47,8 +47,11 @@ def solve(
         log_level: 日志等级，无法识别时 C++ 侧退化为 ``info``。
 
     Returns:
-        key 为 ``loads`` / ``locations`` / ``unassigned`` / ``infeasible``，
-        值为绝对路径；本次未产出的 key 为 ``None``。
+        key 为 ``plan_summary`` / ``loads`` / ``locations`` / ``unassigned`` /
+        ``infeasible``，值为绝对路径；本次未产出的 key 为 ``None``。
+
+        0.2.0 起新增 ``plan_summary``，指向 ``PlanSummary.json``；本次未产出时为
+        ``None``。
 
         注意 ``loads`` 为 ``None`` 不代表失败：precheck 发现不可解订单时会拦截
         整条链路，此时 ``infeasible`` 有值而 ``loads`` 为 ``None``。
