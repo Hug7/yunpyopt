@@ -6,8 +6,10 @@
 """
 
 import importlib.util
+import json
 import os
 import shutil
+import sys
 from pathlib import Path
 
 import pytest
@@ -32,7 +34,7 @@ def case_dir(tmp_path: Path) -> Path:
 
 
 def test_solve_produces_loads(case_dir: Path) -> None:
-    """正例：四个 key 齐全，loads 指向存在且非空的文件。"""
+    """正例：五个 key 齐全，loads 指向存在且非空的文件。"""
     result = solve(case_dir)  # 同时覆盖 PathLike 入参
 
     assert set(result) == set(RESULT_KEYS)
@@ -42,6 +44,34 @@ def test_solve_produces_loads(case_dir: Path) -> None:
     assert loads_path.is_file()
     assert loads_path.stat().st_size > 0
     assert loads_path.parent.parent == case_dir / "output"
+
+
+def test_result_contract_includes_plan_summary(case_dir: Path) -> None:
+    """0.2.0 新增 plan_summary；成功求解时必须产出可解析的 JSON。"""
+    result = solve(case_dir, log_level="warning")
+
+    assert set(result) == set(RESULT_KEYS)
+    assert "plan_summary" in RESULT_KEYS
+
+    summary_path = result["plan_summary"]
+    assert summary_path is not None, f"plan_summary 未产出，infeasible={result['infeasible']}"
+
+    payload = json.loads(Path(summary_path).read_text(encoding="utf-8"))
+    assert isinstance(payload, (dict, list))
+
+
+def test_solve_unicode_case_dir(tmp_path: Path) -> None:
+    """非 ASCII 路径：macOS/Linux 可用；Windows 给出明确的 Python 错误。"""
+    case_dir = tmp_path / "用例_中文_路径"
+    shutil.copytree(_CASE_DIR, case_dir, ignore=shutil.ignore_patterns("output"))
+
+    if sys.platform == "win32":
+        with pytest.raises(ValueError, match="ASCII"):
+            solve(case_dir, log_level="warning")
+        return
+
+    result = solve(case_dir, log_level="warning")
+    assert result["loads"] is not None
 
 
 def test_solve_repeated_is_safe(case_dir: Path) -> None:

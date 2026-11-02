@@ -4,8 +4,8 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "yunpyopt"
-version = "0.1.0"
-description = "Python caller for the project \"yun\" — domain models and solver binding for logistics optimization."
+version = "0.2.0"
+description = "Python caller for the project \"yun\" — domain models and solver binding for logistics optimization on macOS, Linux and Windows."
 authors = ["yunpyopt contributors"]
 license = "Apache-2.0"
 readme = "README.md"
@@ -18,6 +18,8 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: Implementation :: CPython",
@@ -62,7 +64,7 @@ disallow_untyped_defs = false
 disallow_incomplete_defs = false
 
 [[tool.mypy.overrides]]
-module = ["pandas", "pandas.*", "yunpyopt._core", "yunpyopt._core.*"]
+module = ["pandas", "pandas.*", "yunpyopt._core", "yunpyopt._core.*", "yunpyopt._build_info"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
