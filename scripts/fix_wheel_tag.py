@@ -5,7 +5,7 @@
   标签，但扩展的实际 minos 更高。脚本读取 ``LC_BUILD_VERSION/minos`` 与 ``lipo``
   架构，把 minos 向上取整到下一个 major（13.3 -> 14_0），再调用 ``wheel tags``
   重写文件名、``WHEEL`` 与 ``RECORD``。
-- Linux：调用 ``auditwheel repair`` 把 wheel 修成 manylinux_2_28，并校验结果。
+- Linux：调用 ``auditwheel repair --only-plat`` 把 wheel 修成单一 manylinux_2_28 标签，并校验结果。
 - Windows：校验 ``win_amd64`` 标签与唯一的 ``yunpyopt/_core*.pyd``。
 """
 
@@ -168,6 +168,7 @@ def _linux_retag(wheel: Path, spec: SdkPlatform) -> Path:
             "repair",
             "--plat",
             spec.wheel_platform,
+            "--only-plat",
             "--wheel-dir",
             str(fixed_dir),
             str(wheel),

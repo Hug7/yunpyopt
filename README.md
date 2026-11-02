@@ -135,7 +135,7 @@ export CC="$(command -v gcc)" CXX="$(command -v g++)"
 "$PY" scripts/fix_wheel_tag.py dist
 ```
 
-`fix_wheel_tag.py` 会调用 `auditwheel repair --plat manylinux_2_28_*` 并校验结果。
+`fix_wheel_tag.py` 会调用 `auditwheel repair --plat manylinux_2_28_* --only-plat` 并校验结果。
 Linux 扩展使用 `-static-libstdc++ -static-libgcc`，避免依赖 GCC 14 的
 `libstdc++.so.6`。
 

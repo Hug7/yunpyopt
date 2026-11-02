@@ -108,7 +108,7 @@ SDK 获取优先级、覆盖变量与校验见 [yun SDK 依赖](yun-sdk-dependen
 | 平台 | 处理 | 结果 |
 | --- | --- | --- |
 | macOS | `otool` 读 `LC_BUILD_VERSION/minos` + `lipo` 架构；`wheel tags` 重写 | `macosx_14_0_arm64` |
-| Linux | `auditwheel repair --plat manylinux_2_28_<arch>`，删除未修输入 | `manylinux_2_28_<arch>` |
+| Linux | `auditwheel repair --plat manylinux_2_28_<arch> --only-plat`，删除未修输入 | `manylinux_2_28_<arch>` |
 | Windows | 校验 `cp311-cp311-win_amd64` 与唯一 `_core*.pyd` | `win_amd64` |
 
 macOS 的 minos 向上取整到下一个 major（13.3 → 14_0），因为 pip 的 macOS 兼容标签只按
