@@ -142,8 +142,9 @@ set_target_properties(yun_python_binding PROPERTIES OUTPUT_NAME "_core")
   避免要求 GCC 14 运行库。
 - **Windows 运行时**：SDK 以 `/MD` 构建，消费端必须同样 `/MD`；wheel 不打包
   `MSVCP140.dll` / `VCRUNTIME140.dll`，用户需安装 VC++ 2015-2022 x64 运行库。
-- **Windows 路径**：SDK 的 C++ 侧仍使用窄路径（`std::string` + `std::ifstream`），
+- **Windows 路径**：SDK 0.2.0 的 C++ 侧仍使用窄路径（`std::string` + `std::ifstream`），
   非 ASCII 案例路径会打开失败；`yunpyopt` 在 Windows 上会提前抛出 `ValueError`。
+  当前继续固定 SDK 0.2.0，本轮不升级 SDK。
 - **macOS 最低版本**：SDK 部署目标 14.0；wheel tag 取 `macosx_14_0_arm64`。
 - **SDK 不可变**：同一版本不覆盖发布，否则 `SHA256SUMS` 变化影响复现。
 

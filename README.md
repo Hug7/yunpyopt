@@ -234,8 +234,9 @@ YUNPYOPT_REQUIRE_CORE=1 poetry run pytest -v
 
 - 仅 CPython 3.11；3.12/3.13 尚未提供 wheel。
 - 不提供 macOS Intel、Windows arm64、musl Linux 产物。
-- Windows 版当前不支持非 ASCII 案例路径：底层 SDK 仍使用窄路径，`Solver` 会抛出带说明的
-  `ValueError`；请把案例目录放到纯英文路径。宽路径支持需要升级到 yun SDK >= 0.2.1。
+- Windows 版当前不支持非 ASCII 案例路径：底层 SDK 0.2.0 仍使用窄路径，`Solver` 会抛出带
+  说明的 `ValueError`；请把案例目录放到纯英文路径。当前继续固定使用 yun SDK 0.2.0，
+  本轮不升级；宽路径支持留待后续版本单独评估。
 - `Strategy.lua` 的 `max_iter` 目前不影响导出结果：ALNS 最优解没有写回 workspace，导出的是
   KNN 构造解。
 

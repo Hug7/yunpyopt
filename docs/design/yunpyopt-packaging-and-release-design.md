@@ -236,4 +236,5 @@ CI 设置 `YUNPYOPT_REQUIRE_CORE=1`，缺扩展直接失败，避免“全 skip 
 - **ABI**：SDK 同编译器家族；升级 SDK 必须重建扩展。
 - **SDK 不可变**：同一版本不覆盖发布。
 - **Windows 非 ASCII 路径**：当前不支持；`Solver` 在 Windows 上检测到非 ASCII 案例路径会抛出
-  `ValueError`，底层 `yun` SDK 仍使用窄路径，宽路径支持需升级到 yun SDK >= 0.2.1。
+  `ValueError`。当前固定使用 `yun` SDK 0.2.0，其窄路径限制本轮不修复；宽路径支持留待后续
+  版本单独评估，不在 0.2.0 发布范围内。

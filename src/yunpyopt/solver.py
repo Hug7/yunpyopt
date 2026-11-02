@@ -76,7 +76,7 @@ class Solver:
         if sys.platform == "win32" and not self._case_dir.isascii():
             raise ValueError(
                 "Windows 版当前仅支持 ASCII 案例路径；请把案例目录移动到纯英文路径。"
-                "底层 yun SDK 仍使用窄路径，宽路径支持需要升级到 yun SDK >= 0.2.1。"
+                "当前固定使用 yun SDK 0.2.0，其窄路径限制在本轮不修复。"
             )
         self._log_dir = os.fspath(log_dir) if log_dir is not None else ""
         self._log_level = log_level
