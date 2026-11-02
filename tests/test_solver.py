@@ -9,6 +9,7 @@ import importlib.util
 import json
 import os
 import shutil
+import sys
 from pathlib import Path
 
 import pytest
@@ -60,9 +61,14 @@ def test_result_contract_includes_plan_summary(case_dir: Path) -> None:
 
 
 def test_solve_unicode_case_dir(tmp_path: Path) -> None:
-    """中文路径在 Windows 上也必须可用；否则应在 Python 层给出明确错误。"""
+    """非 ASCII 路径：macOS/Linux 可用；Windows 给出明确的 Python 错误。"""
     case_dir = tmp_path / "用例_中文_路径"
     shutil.copytree(_CASE_DIR, case_dir, ignore=shutil.ignore_patterns("output"))
+
+    if sys.platform == "win32":
+        with pytest.raises(ValueError, match="ASCII"):
+            solve(case_dir, log_level="warning")
+        return
 
     result = solve(case_dir, log_level="warning")
     assert result["loads"] is not None

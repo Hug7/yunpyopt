@@ -21,6 +21,7 @@
 - `fetch_sdk.py` / `build_ext.py` / `fix_wheel_tag.py` 平台化，支持 `.a`/`.lib`、`.so`/`.pyd`
 - Linux wheel 使用 `manylinux_2_28` 标签，并静态链接 `libstdc++`/`libgcc`
 - Windows wheel 使用 `win_amd64` 标签，保持 `/MD` 运行时
+- Windows 暂不支持非 ASCII 案例路径；检测到后抛出明确的 `ValueError`
 
 ### 修复（Fixed）
 

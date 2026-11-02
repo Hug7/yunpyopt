@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from typing import Any, TypedDict, cast
 
 try:
@@ -72,6 +73,11 @@ class Solver:
         log_level: str = DEFAULT_LOG_LEVEL,
     ) -> None:
         self._case_dir = os.path.abspath(os.fspath(case_dir))
+        if sys.platform == "win32" and not self._case_dir.isascii():
+            raise ValueError(
+                "Windows 版当前仅支持 ASCII 案例路径；请把案例目录移动到纯英文路径。"
+                "底层 yun SDK 仍使用窄路径，宽路径支持需要升级到 yun SDK >= 0.2.1。"
+            )
         self._log_dir = os.fspath(log_dir) if log_dir is not None else ""
         self._log_level = log_level
         self._core: _CoreSolver | None = None
@@ -155,6 +161,7 @@ def solve(
         整条链路，此时 ``infeasible`` 有值而 ``loads`` 为 ``None``。
 
     Raises:
+        ValueError: Windows 上 ``case_dir`` 含非 ASCII 字符（当前 SDK 限制）。
         YunSolverError: 场景读取失败、``Strategy.lua`` 缺失或求解过程抛异常。
 
     Known behaviour:

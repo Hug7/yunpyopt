@@ -107,6 +107,9 @@ result: SolveResult = solve("path/to/c1_2_1")
 案例目录需要场景 CSV、`Parameter.yaml` 与 `Strategy.lua`，且必须可写（求解会在其下创建
 `output/<request_id>/`）。`log_dir` 可选；不传时该参数关闭，日志仍会写到产物目录。
 
+Windows 上案例路径必须是纯 ASCII；否则 `Solver` 会抛出带说明的 `ValueError`，请先把案例
+移动到英文路径。
+
 ### 结果 key
 
 | key | 文件 | 说明 |
@@ -231,7 +234,8 @@ YUNPYOPT_REQUIRE_CORE=1 poetry run pytest -v
 
 - 仅 CPython 3.11；3.12/3.13 尚未提供 wheel。
 - 不提供 macOS Intel、Windows arm64、musl Linux 产物。
-- Windows 非 ASCII 路径仍在验证；如遇 `std::ifstream` 打开失败，请先把案例目录放到纯英文路径。
+- Windows 版当前不支持非 ASCII 案例路径：底层 SDK 仍使用窄路径，`Solver` 会抛出带说明的
+  `ValueError`；请把案例目录放到纯英文路径。宽路径支持需要升级到 yun SDK >= 0.2.1。
 - `Strategy.lua` 的 `max_iter` 目前不影响导出结果：ALNS 最优解没有写回 workspace，导出的是
   KNN 构造解。
 
