@@ -59,6 +59,15 @@ def test_result_contract_includes_plan_summary(case_dir: Path) -> None:
     assert isinstance(payload, (dict, list))
 
 
+def test_solve_unicode_case_dir(tmp_path: Path) -> None:
+    """中文路径在 Windows 上也必须可用；否则应在 Python 层给出明确错误。"""
+    case_dir = tmp_path / "用例_中文_路径"
+    shutil.copytree(_CASE_DIR, case_dir, ignore=shutil.ignore_patterns("output"))
+
+    result = solve(case_dir, log_level="warning")
+    assert result["loads"] is not None
+
+
 def test_solve_repeated_is_safe(case_dir: Path) -> None:
     """同一个 case 连续求解两次不崩（覆盖 Solver::solve 的重复调用路径）。"""
     first = solve(case_dir)
