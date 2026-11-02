@@ -64,7 +64,7 @@ disallow_untyped_defs = false
 disallow_incomplete_defs = false
 
 [[tool.mypy.overrides]]
-module = ["pandas", "pandas.*", "yunpyopt._core", "yunpyopt._core.*"]
+module = ["pandas", "pandas.*", "yunpyopt._core", "yunpyopt._core.*", "yunpyopt._build_info"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
