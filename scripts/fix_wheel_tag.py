@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""修正 wheel 的平台标签，使其与扩展二进制的实际 minos 一致。
+"""按平台修正/校验 wheel 标签。
 
-poetry-core 用构建解释器的 ``sys_tags``（例如 ``macosx_11_0_arm64``）作为 wheel
-标签，但 yun 的 C++20 ``std::format`` 需要 macOS 13.3+，扩展的实际 minos 更高。
-由于 pip 的 macOS 兼容标签按 ``major.0`` 枚举（``macosx_13_3`` 在更高系统上不会被
-接受），本脚本把 minos 向上取整到下一个 major（13.3 -> 14_0），再读取
-``LC_BUILD_VERSION/minos`` 与 ``lipo`` 架构，调用 ``wheel tags`` 重写文件名、WHEEL 与 RECORD。
+- macOS：poetry-core 用构建解释器的 ``sys_tags``（例如 ``macosx_11_0_arm64``）作为
+  标签，但扩展的实际 minos 更高。脚本读取 ``LC_BUILD_VERSION/minos`` 与 ``lipo``
+  架构，把 minos 向上取整到下一个 major（13.3 -> 14_0），再调用 ``wheel tags``
+  重写文件名、``WHEEL`` 与 ``RECORD``。
+- Linux：调用 ``auditwheel repair`` 把 wheel 修成 manylinux_2_28，并校验结果。
+- Windows：校验 ``win_amd64`` 标签与唯一的 ``yunpyopt/_core*.pyd``。
 """
 
 from __future__ import annotations
@@ -13,11 +14,14 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
 import zipfile
 from pathlib import Path
+
+from sdk_platform import SdkPlatform, detect_platform
 
 
 def _run(cmd: list[str]) -> str:
@@ -54,10 +58,15 @@ def _so_arch(so: Path) -> str:
     raise SystemExit(f"不支持的架构组合: {sorted(archs)}")
 
 
-def _python_abi(so: Path) -> tuple[str, str]:
-    match = re.search(r"\.cpython-(\d+)(\d+)(t?)-darwin\.so$", so.name)
-    if not match:
-        raise SystemExit(f"无法从文件名推导 Python/ABI tag: {so.name}")
+def _python_abi(extension: Path) -> tuple[str, str]:
+    # macOS: _core.cpython-311-darwin.so
+    # Linux: _core.cpython-311-x86_64-linux-gnu.so
+    # Windows: _core.cp311-win_amd64.pyd
+    match = re.search(r"\.cpython-(\d+)(\d+)(t?)-[^.]+\.so$", extension.name)
+    if match is None:
+        match = re.search(r"\.cp(\d+)(\d+)(t?)-[^.]+\.pyd$", extension.name)
+    if match is None:
+        raise SystemExit(f"无法从文件名推导 Python/ABI tag: {extension.name}")
     python_tag = f"cp{match.group(1)}{match.group(2)}"
     return python_tag, f"{python_tag}{match.group(3)}"
 
@@ -86,6 +95,7 @@ def _find_wheels(paths: list[Path]) -> list[Path]:
 
 
 def _retag(wheel: Path) -> Path:
+    """macOS：按扩展的实际 minos/架构重写 wheel tag。"""
     with tempfile.TemporaryDirectory() as tmp:
         with zipfile.ZipFile(wheel) as archive:
             members = [name for name in archive.namelist() if name.endswith(".so")]
@@ -140,12 +150,74 @@ def _retag(wheel: Path) -> Path:
     return new_wheel
 
 
+def _linux_retag(wheel: Path, spec: SdkPlatform) -> Path:
+    """Linux：用 auditwheel 修成 manylinux_2_28，并删掉未修的输入 wheel。"""
+    if shutil.which("auditwheel") is None:
+        raise SystemExit("需要 auditwheel：python -m pip install auditwheel")
+
+    fixed_dir = wheel.parent / "_fixed"
+    fixed_dir.mkdir(exist_ok=True)
+    for stale in fixed_dir.glob("*.whl"):
+        stale.unlink()
+
+    _run(
+        [
+            sys.executable,
+            "-m",
+            "auditwheel",
+            "repair",
+            "--plat",
+            spec.wheel_platform,
+            "--wheel-dir",
+            str(fixed_dir),
+            str(wheel),
+        ]
+    )
+    fixed = sorted(fixed_dir.glob("*.whl"))
+    if len(fixed) != 1:
+        raise SystemExit(f"auditwheel 应产出一个 wheel，实际: {fixed}")
+
+    target = wheel.parent / fixed[0].name
+    if target.exists() and target != wheel:
+        target.unlink()
+    shutil.move(str(fixed[0]), target)
+    if wheel != target and wheel.exists():
+        wheel.unlink()
+    _run([sys.executable, "-m", "auditwheel", "show", str(target)])
+    return target
+
+
+def _windows_check(wheel: Path) -> Path:
+    """Windows：校验 win_amd64 标签与唯一的 yunpyopt/_core*.pyd。"""
+    expected = "cp311-cp311-win_amd64"
+    if f"-{expected}.whl" not in wheel.name:
+        raise SystemExit(f"Windows wheel 标签不正确: {wheel.name}")
+
+    with zipfile.ZipFile(wheel) as archive:
+        members = [name for name in archive.namelist() if name.endswith(".pyd")]
+        wheel_meta = next(name for name in archive.namelist() if name.endswith(".dist-info/WHEEL"))
+        text = archive.read(wheel_meta).decode()
+
+    if len(members) != 1 or not members[0].startswith("yunpyopt/_core."):
+        raise SystemExit(f"{wheel.name} 中应恰好有一个 yunpyopt/_core*.pyd，实际: {members}")
+    if f"Tag: {expected}" not in text:
+        raise SystemExit(f"{wheel.name} 的 WHEEL 缺少 Tag: {expected}:\n{text}")
+    return wheel
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="把 wheel 平台标签修正为扩展的实际 minos")
+    parser = argparse.ArgumentParser(description="按平台修正/校验 wheel 平台标签")
     parser.add_argument("paths", nargs="*", type=Path, default=[Path("dist")])
     args = parser.parse_args()
+
+    spec = detect_platform()
     for wheel in _find_wheels(args.paths):
-        _retag(wheel)
+        if spec.system == "darwin":
+            _retag(wheel)
+        elif spec.system == "linux":
+            _linux_retag(wheel, spec)
+        else:
+            _windows_check(wheel)
 
 
 if __name__ == "__main__":
