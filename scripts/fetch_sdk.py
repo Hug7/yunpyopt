@@ -1,6 +1,6 @@
 """下载并解压 yun Release 的预编译 SDK。
 
-支持 yun SDK 0.2.0 提供的四个平台：macOS arm64、Linux x86_64、Linux arm64、
+支持 yun SDK 提供的四个平台：macOS arm64、Linux x86_64、Linux arm64、
 Windows x86_64。平台判断统一由 :mod:`sdk_platform` 提供。
 
 优先级：

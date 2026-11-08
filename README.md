@@ -16,20 +16,21 @@
 
 ## 安装
 
-0.2.0 通过 GitHub Release 分发（PyPI 尚未启用），按平台选择对应 wheel：
+`yunpyopt` 0.3.0 通过 GitHub Release 分发（PyPI 尚未启用），按平台选择对应 wheel。
+该版本的二进制扩展基于 `yun` SDK 0.3.0 构建；包版本与 SDK 的 major.minor 保持同步。
 
 ```bash
 # macOS arm64
-pip install https://github.com/Hug7/yunpyopt/releases/download/v0.2.0/yunpyopt-0.2.0-cp311-cp311-macosx_14_0_arm64.whl
+pip install https://github.com/Hug7/yunpyopt/releases/download/v0.3.0/yunpyopt-0.3.0-cp311-cp311-macosx_14_0_arm64.whl
 
 # Linux x86_64
-pip install https://github.com/Hug7/yunpyopt/releases/download/v0.2.0/yunpyopt-0.2.0-cp311-cp311-manylinux_2_28_x86_64.whl
+pip install https://github.com/Hug7/yunpyopt/releases/download/v0.3.0/yunpyopt-0.3.0-cp311-cp311-manylinux_2_28_x86_64.whl
 
 # Linux arm64
-pip install https://github.com/Hug7/yunpyopt/releases/download/v0.2.0/yunpyopt-0.2.0-cp311-cp311-manylinux_2_28_aarch64.whl
+pip install https://github.com/Hug7/yunpyopt/releases/download/v0.3.0/yunpyopt-0.3.0-cp311-cp311-manylinux_2_28_aarch64.whl
 
 # Windows x64
-pip install https://github.com/Hug7/yunpyopt/releases/download/v0.2.0/yunpyopt-0.2.0-cp311-cp311-win_amd64.whl
+pip install https://github.com/Hug7/yunpyopt/releases/download/v0.3.0/yunpyopt-0.3.0-cp311-cp311-win_amd64.whl
 ```
 
 Windows 需要安装 **Microsoft Visual C++ 2015-2022 Redistributable (x64)**；wheel 不打包
@@ -114,7 +115,7 @@ Windows 上案例路径必须是纯 ASCII；否则 `Solver` 会抛出带说明�
 
 | key | 文件 | 说明 |
 | --- | --- | --- |
-| `plan_summary` | `PlanSummary.json` | 规划结果汇总（0.2.0 新增） |
+| `plan_summary` | `PlanSummary.json` | 规划结果汇总（0.3.0 新增） |
 | `loads` | `Loads.json` | 车次与路径 |
 | `locations` | `LoadLocations.json` | 位置装载信息 |
 | `unassigned` | `UnassignedCargoOrders.json` | 未分配订单 |
@@ -138,7 +139,7 @@ loads = json.loads(Path(result["loads"]).read_text(encoding="utf-8"))
 - CPython 3.11
 - CMake ≥ 3.24
 - Poetry 2.5+
-- `yun` 0.2.0 SDK：`scripts/fetch_sdk.py` 会从 GitHub Release 下载并校验；离线/本地开发可用
+- `yun` 0.3.0 SDK：`scripts/fetch_sdk.py` 会从 GitHub Release 下载并校验；离线/本地开发可用
   `YUN_SDK_DIR` 指向已解压的 SDK
 
 ```bash
@@ -151,6 +152,12 @@ YUNPYOPT_REQUIRE_CORE=1 poetry run pytest -v
 `poetry install` 会执行 PEP 517 build hook `scripts/build_ext.py`：下载 SDK、构建
 `yunpyopt._core`，再把产物复制到 `src/yunpyopt/`。SDK 版本固定在
 [`yun-sdk-version.txt`](yun-sdk-version.txt)。
+
+`yun` SDK 0.3.0 与 0.2.0 ABI 不兼容：更新 pin 后必须重新执行
+`python scripts/build_ext.py`（或重新 `poetry install`）重建扩展。
+
+版本策略：`yun` SDK 的 major.minor 变化时，`yunpyopt` 的 major.minor 必须同步升级；
+只变 patch（如 `0.3.0 → 0.3.1`）不强制。详见 [发布手册](docs/release.md)。
 
 ### macOS（arm64，14.0+）
 
@@ -234,11 +241,8 @@ YUNPYOPT_REQUIRE_CORE=1 poetry run pytest -v
 
 - 仅 CPython 3.11；3.12/3.13 尚未提供 wheel。
 - 不提供 macOS Intel、Windows arm64、musl Linux 产物。
-- Windows 版当前不支持非 ASCII 案例路径：底层 SDK 0.2.0 仍使用窄路径，`Solver` 会抛出带
-  说明的 `ValueError`；请把案例目录放到纯英文路径。当前继续固定使用 yun SDK 0.2.0，
-  本轮不升级；宽路径支持留待后续版本单独评估。
-- `Strategy.lua` 的 `max_iter` 目前不影响导出结果：ALNS 最优解没有写回 workspace，导出的是
-  KNN 构造解。
+- Windows 版当前不支持非 ASCII 案例路径：底层 SDK 0.3.0 仍使用窄路径，`Solver` 会抛出带
+  说明的 `ValueError`；请把案例目录放到纯英文路径，宽路径支持留待后续版本单独评估。
 
 ## 许可证
 

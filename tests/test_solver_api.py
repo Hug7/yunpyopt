@@ -19,7 +19,7 @@ def case_dir(tmp_path: Path) -> Path:
 
 
 def test_build_info_is_available():
-    assert SDK_VERSION == "0.2.0"
+    assert SDK_VERSION == "0.3.0"
     assert SDK_PLATFORM in {
         "macos-arm64",
         "linux-x86_64",

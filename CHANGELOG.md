@@ -5,6 +5,14 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/spec/v2.0.0.html)。
 
+## [0.3.0] — Unreleased
+
+### 变更（Changed）
+
+- `yun-sdk-version.txt` 升级到 `0.3.0`，`yunpyopt` 版本同步升级到 `0.3.0`；
+  `yun` SDK 0.3.0 与 0.2.0 ABI 不兼容，扩展需重新构建
+- 新增版本策略：`yun` SDK 的 major.minor 变化时，`yunpyopt` 的 major.minor 同步升级；patch 变化不强制
+
 ## [0.2.0] — Unreleased
 
 ### 新增（Added）
@@ -17,7 +25,6 @@
 
 ### 变更（Changed）
 
-- `yun-sdk-version.txt` 升级到 `0.2.0`
 - `fetch_sdk.py` / `build_ext.py` / `fix_wheel_tag.py` 平台化，支持 `.a`/`.lib`、`.so`/`.pyd`
 - Linux wheel 使用 `manylinux_2_28` 标签，并静态链接 `libstdc++`/`libgcc`
 - Windows wheel 使用 `win_amd64` 标签，保持 `/MD` 运行时
@@ -28,6 +35,7 @@
 - 修复 Windows wheel 未包含 `_core*.pyd` 的问题（`*.py[codz]` 误匹配 `.pyd`）
 - 修复 Windows 构建脚本在 cp1252 控制台下的中文编码错误
 - 修复 Linux wheel 平台标签出现 `manylinux_2_26...manylinux_2_28...` 复合标签的问题
+- 修正文档中关于 ALNS 结果导出的过时说明：导出的是 ALNS 最优解，`max_iter` 会影响结果
 
 ### 移除（Removed）
 

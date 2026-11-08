@@ -47,7 +47,7 @@ def test_solve_produces_loads(case_dir: Path) -> None:
 
 
 def test_result_contract_includes_plan_summary(case_dir: Path) -> None:
-    """0.2.0 新增 plan_summary；成功求解时必须产出可解析的 JSON。"""
+    """新增 plan_summary；成功求解时必须产出可解析的 JSON。"""
     result = solve(case_dir, log_level="warning")
 
     assert set(result) == set(RESULT_KEYS)

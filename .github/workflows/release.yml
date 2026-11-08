@@ -26,7 +26,10 @@ jobs:
 
           version = tomllib.loads(Path("pyproject.toml").read_text())["tool"]["poetry"]["version"]
           sdk = Path("yun-sdk-version.txt").read_text().strip()
-          assert sdk == "0.2.0", f"unexpected SDK pin: {sdk}"
+          assert sdk == "0.3.0", f"unexpected SDK pin: {sdk}"
+          assert version.split(".")[:2] == sdk.split(".")[:2], (
+              f"yunpyopt {version} must track yun SDK {sdk} (major.minor)"
+          )
           if os.environ["GITHUB_REF"].startswith("refs/tags/"):
               tag = os.environ["GITHUB_REF_NAME"]
               assert tag == f"v{version}", f"tag {tag} != v{version}"

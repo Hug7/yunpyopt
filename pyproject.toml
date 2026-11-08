@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "yunpyopt"
-version = "0.2.0"
+version = "0.3.0"
 description = "Python caller for the project \"yun\" — domain models and solver binding for logistics optimization on macOS, Linux and Windows."
 authors = ["yunpyopt contributors"]
 license = "Apache-2.0"
