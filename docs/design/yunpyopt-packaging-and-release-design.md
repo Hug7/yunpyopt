@@ -63,10 +63,11 @@ yunpyopt/
 │   ├── test_fetch_sdk.py
 │   ├── test_build_ext.py
 │   ├── test_wheel_tag.py
+│   ├── test_version_policy.py
 │   └── test_*.py（领域模型）
 ├── pyproject.toml
 ├── poetry.lock
-├── yun-sdk-version.txt                 # 当前 0.2.0
+├── yun-sdk-version.txt
 └── README.md
 ```
 
@@ -76,7 +77,7 @@ yunpyopt/
 
 | 依赖 | 来源 | 版本 |
 | --- | --- | --- |
-| `yun` 求解器 | GitHub Release 预编译 SDK | `yun-sdk-version.txt`（0.2.0） |
+| `yun` 求解器 | GitHub Release 预编译 SDK | `yun-sdk-version.txt`（0.3.0） |
 | `pybind11` | PEP 517 `build-system.requires` | `>=2.13,<4` |
 | `poetry-core` | PEP 517 `build-system.requires` | `>=2.5,<3` |
 | `cmake` | 宿主机 / CI | `>=3.24` |
@@ -84,6 +85,9 @@ yunpyopt/
 | `typing-extensions` | 运行时 | `>=4.6` |
 
 SDK 获取优先级、覆盖变量与校验见 [yun SDK 依赖](yun-sdk-dependency.md)。
+
+版本同步：`yunpyopt` 的 major.minor 必须与 `yun-sdk-version.txt` 的 major.minor 一致。
+SDK 的 major/minor 变化时同步 bump 包版本（patch 变化不强制）；发布 CI 会校验。
 
 ---
 
@@ -204,7 +208,8 @@ CI 设置 `YUNPYOPT_REQUIRE_CORE=1`，缺扩展直接失败，避免“全 skip 
 
 ### 7.2 `release.yml`
 
-- `version` job：校验 tag 与 `pyproject.toml` 版本、`yun-sdk-version.txt`；
+- `version` job：校验 tag 与 `pyproject.toml` 版本、`yun-sdk-version.txt`，以及包版本与
+  SDK 的 major.minor 是否同步；
 - `build-macos` / `build-linux`（x86_64/arm64 matrix）/ `build-windows`：构建并上传 artifact；
 - `release` job：下载 `wheel-*`，校验四个 wheel，生成 `SHA256SUMS`，创建 GitHub Release；
 - `workflow_dispatch` 只构建 artifact，不创建 Release；
@@ -219,7 +224,7 @@ CI 设置 `YUNPYOPT_REQUIRE_CORE=1`，缺扩展直接失败，避免“全 skip 
 
 ## 8. 发布流程
 
-1. 更新 `pyproject.toml` 版本与 `CHANGELOG.md`；
+1. 按版本同步规则更新 `pyproject.toml` 版本（major.minor 与 SDK 一致）与 `CHANGELOG.md`；
 2. 确认 `yun-sdk-version.txt` 指向已发布 SDK；
 3. 打 tag `v<version>` 并 push，触发 `release.yml`；
 4. 从 GitHub Release 下载四个 wheel，按 [发布手册](../release.md) 验证。
@@ -234,7 +239,9 @@ CI 设置 `YUNPYOPT_REQUIRE_CORE=1`，缺扩展直接失败，避免“全 skip 
 - **Windows**：clang-cl + `/MD`；用户需 VC++ 2015-2022 x64 运行库。
 - **macOS**：部署目标 14.0；wheel tag `macosx_14_0_arm64`。
 - **ABI**：SDK 同编译器家族；升级 SDK 必须重建扩展。
+- **版本同步**：`yunpyopt` 的 major.minor 与 SDK pin 的 major.minor 保持一致；SDK
+  major/minor 变化时必须同步升级包版本，patch 变化不强制。
 - **SDK 不可变**：同一版本不覆盖发布。
 - **Windows 非 ASCII 路径**：当前不支持；`Solver` 在 Windows 上检测到非 ASCII 案例路径会抛出
-  `ValueError`。当前固定使用 `yun` SDK 0.2.0，其窄路径限制本轮不修复；宽路径支持留待后续
-  版本单独评估，不在 0.2.0 发布范围内。
+  `ValueError`。当前固定使用 `yun` SDK 0.3.0，其窄路径限制仍未修复；宽路径支持留待后续
+  版本单独评估，不在 0.3.0 发布范围内。

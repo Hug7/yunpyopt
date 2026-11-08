@@ -1,7 +1,7 @@
 """平台识别与 yun SDK 元数据。
 
 `fetch_sdk.py`、`build_ext.py`、`fix_wheel_tag.py` 共用这一份映射，避免三处各写
-一套平台判断。只覆盖 yun SDK 0.2.0 正式提供的四个平台产物。
+一套平台判断。只覆盖 yun SDK 正式提供的四个平台产物。
 """
 
 from __future__ import annotations

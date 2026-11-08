@@ -76,7 +76,7 @@ class Solver:
         if sys.platform == "win32" and not self._case_dir.isascii():
             raise ValueError(
                 "Windows 版当前仅支持 ASCII 案例路径；请把案例目录移动到纯英文路径。"
-                "当前固定使用 yun SDK 0.2.0，其窄路径限制在本轮不修复。"
+                "当前固定使用 yun SDK 0.3.0，其窄路径限制仍未修复。"
             )
         self._log_dir = os.fspath(log_dir) if log_dir is not None else ""
         self._log_level = log_level
@@ -154,7 +154,7 @@ def solve(
         key 为 ``plan_summary`` / ``loads`` / ``locations`` / ``unassigned`` /
         ``infeasible``，值为绝对路径；本次未产出的 key 为 ``None``。
 
-        0.2.0 起新增 ``plan_summary``，指向 ``PlanSummary.json``；本次未产出时为
+        0.3.0 起新增 ``plan_summary``，指向 ``PlanSummary.json``；本次未产出时为
         ``None``。
 
         注意 ``loads`` 为 ``None`` 不代表失败：precheck 发现不可解订单时会拦截
@@ -163,10 +163,6 @@ def solve(
     Raises:
         ValueError: Windows 上 ``case_dir`` 含非 ASCII 字符（当前 SDK 限制）。
         YunSolverError: 场景读取失败、``Strategy.lua`` 缺失或求解过程抛异常。
-
-    Known behaviour:
-        ALNS 阶段没有把最优解写回 workspace，导出的车次是 KNN 构造解，
-        因此 ``Strategy.lua`` 里的 ``max_iter`` 不影响输出。
     """
     with Solver(case_dir, log_dir=log_dir, log_level=log_level) as solver:
         return solver.solve()

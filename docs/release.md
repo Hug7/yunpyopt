@@ -3,25 +3,30 @@
 本项目的发布物是 **GitHub Release 上的四个平台 wheel**（PyPI 暂未启用）：
 
 ```text
-yunpyopt-0.2.0-cp311-cp311-macosx_14_0_arm64.whl
-yunpyopt-0.2.0-cp311-cp311-manylinux_2_28_x86_64.whl
-yunpyopt-0.2.0-cp311-cp311-manylinux_2_28_aarch64.whl
-yunpyopt-0.2.0-cp311-cp311-win_amd64.whl
+yunpyopt-0.3.0-cp311-cp311-macosx_14_0_arm64.whl
+yunpyopt-0.3.0-cp311-cp311-manylinux_2_28_x86_64.whl
+yunpyopt-0.3.0-cp311-cp311-manylinux_2_28_aarch64.whl
+yunpyopt-0.3.0-cp311-cp311-win_amd64.whl
 ```
 
-版本号以 `pyproject.toml` 为准，tag 必须严格等于 `<version>`（例如 `0.2.0`）。
+版本号以 `pyproject.toml` 为准，tag 必须严格等于 `<version>`（例如 `0.3.0`）。
 `yunpyopt` 消费 `yun` Release 上的**预编译 SDK**，版本由
 [`yun-sdk-version.txt`](../yun-sdk-version.txt) 固定。
+
+版本规则：`yunpyopt` 的 major.minor 必须与 `yun-sdk-version.txt` 的 major.minor 一致。
+SDK 的 major/minor 变化（如 `0.2 → 0.3`）时必须同步 bump 包版本；只变 patch
+（`0.3.0 → 0.3.1`）不强制。`tests/test_version_policy.py` 与 `release.yml` 的 `version`
+job 会校验该规则。
 
 ## 前置条件
 
 - `yun` 的 SDK Release 已发布，附件包含四个 tarball 与 `SHA256SUMS`：
 
   ```text
-  yun-sdk-0.2.0-macos-arm64.tar.gz
-  yun-sdk-0.2.0-linux-x86_64.tar.gz
-  yun-sdk-0.2.0-linux-arm64.tar.gz
-  yun-sdk-0.2.0-windows-x86_64.tar.gz
+  yun-sdk-0.3.0-macos-arm64.tar.gz
+  yun-sdk-0.3.0-linux-x86_64.tar.gz
+  yun-sdk-0.3.0-linux-arm64.tar.gz
+  yun-sdk-0.3.0-windows-x86_64.tar.gz
   SHA256SUMS
   ```
 
@@ -36,7 +41,7 @@ yunpyopt-0.2.0-cp311-cp311-win_amd64.whl
 在 `yun` 仓库确认 `project(yun VERSION ...)` 与 `yun-sdk-version.txt` 一致，且四个资产可下载：
 
 ```bash
-curl -sS https://api.github.com/repos/Hug7/yun/releases/tags/v0.2.0 \
+curl -sS https://api.github.com/repos/Hug7/yun/releases/tags/v0.3.0 \
   | python -c 'import json,sys; print("\n".join(a["name"] for a in json.load(sys.stdin)["assets"]))'
 ```
 
@@ -45,17 +50,20 @@ curl -sS https://api.github.com/repos/Hug7/yun/releases/tags/v0.2.0 \
 ## 2. 更新版本与 pin
 
 ```bash
-poetry version 0.2.0
+poetry version 0.3.0
 poetry lock
 ```
 
 如果 SDK 版本变化：
 
 ```bash
-echo 0.2.0 > yun-sdk-version.txt
+echo 0.3.0 > yun-sdk-version.txt
 ```
 
-更新 `CHANGELOG.md`（0.2.0 条目，保持中文），然后本地校验：
+`yun` SDK 0.3.0 与 0.2.0 ABI 不兼容；更新 pin 后必须重新构建扩展，不能复用 0.2.0 的
+`_core` 产物。
+
+更新 `CHANGELOG.md`（0.3.0 条目，保持中文），然后本地校验：
 
 ```bash
 poetry check --lock
@@ -70,13 +78,13 @@ YUNPYOPT_REQUIRE_CORE=1 poetry run pytest -v
 ### macOS arm64
 
 ```bash
-YUN_SDK_DIR=/path/to/yun-sdk-0.2.0-macos-arm64 poetry install
+YUN_SDK_DIR=/path/to/yun-sdk-0.3.0-macos-arm64 poetry install
 poetry build -f wheel
 poetry run python scripts/fix_wheel_tag.py dist
 ls dist/*.whl
 ```
 
-期望：`yunpyopt-0.2.0-cp311-cp311-macosx_14_0_arm64.whl`。
+期望：`yunpyopt-0.3.0-cp311-cp311-macosx_14_0_arm64.whl`。
 
 ### Linux x86_64 / arm64
 
@@ -106,7 +114,7 @@ python -m build --wheel --outdir dist
 python scripts\fix_wheel_tag.py dist
 ```
 
-期望：`yunpyopt-0.2.0-cp311-cp311-win_amd64.whl`，`dumpbin /dependents` 只包含约定的
+期望：`yunpyopt-0.3.0-cp311-cp311-win_amd64.whl`，`dumpbin /dependents` 只包含约定的
 系统/运行库 DLL。
 
 ### wheel 安装冒烟（每个平台）
@@ -132,7 +140,7 @@ Windows 用 `.venv\Scripts\python.exe` 等价路径。
 
 在 GitHub Actions 运行 **Release → Run workflow**（`workflow_dispatch`）：
 
-- `version` job 校验 `yun-sdk-version.txt`；
+- `version` job 校验 `yun-sdk-version.txt`、包版本与 SDK 的 major.minor 是否同步；
 - 四个 build job 构建、修标签、冒烟、上传 artifact；
 - **不会**创建 Release（只有 `v*` tag 才创建）。
 
@@ -141,19 +149,19 @@ Windows 用 `.venv\Scripts\python.exe` 等价路径。
 - 四个平台 `YUNPYOPT_REQUIRE_CORE=1 pytest` 全绿；
 - `plan_summary` 有值；
 - Linux `auditwheel show`、Windows `dumpbin`、macOS `otool` 检查通过；
-- `CHANGELOG.md` 已中文化并覆盖 0.2.0。
+- `CHANGELOG.md` 已中文化并覆盖 0.3.0。
 
 ## 5. 正式发布
 
 ```bash
 git push origin main
-git tag v0.2.0
-git push origin v0.2.0
+git tag v0.3.0
+git push origin v0.3.0
 ```
 
 `Release` workflow 会：
 
-1. 校验 tag 与 `pyproject.toml` 版本、SDK pin；
+1. 校验 tag、`pyproject.toml` 版本、SDK pin，以及包版本与 SDK 的 major.minor 是否同步；
 2. 构建四个平台 wheel；
 3. 下载 artifact，校验恰好四个 wheel 与命名；
 4. 生成 `SHA256SUMS`；
