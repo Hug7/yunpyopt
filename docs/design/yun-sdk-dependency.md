@@ -25,12 +25,13 @@ yunpyopt (CMake + pybind11) --scripts/build_ext.py--> yunpyopt/_core*.so|.pyd --
 
 | 平台 | 资产 | 编译器/运行时 | 库文件 | wheel 标签 |
 | --- | --- | --- | --- | --- |
-| macOS arm64 | `yun-sdk-0.3.0-macos-arm64.tar.gz` | AppleClang 16+，macOS 14.0+ | `lib/libyun_sdk.a` | `macosx_14_0_arm64` |
-| Linux x86_64 | `yun-sdk-0.3.0-linux-x86_64.tar.gz` | GCC 14，glibc ≥ 2.28 | `lib/libyun_sdk.a` | `manylinux_2_28_x86_64` |
-| Linux arm64 | `yun-sdk-0.3.0-linux-arm64.tar.gz` | GCC 14，glibc ≥ 2.28 | `lib/libyun_sdk.a` | `manylinux_2_28_aarch64` |
-| Windows x86_64 | `yun-sdk-0.3.0-windows-x86_64.tar.gz` | clang-cl 17+ + MSVC STL，`/MD` | `lib/yun_sdk.lib` | `win_amd64` |
+| macOS arm64 | `yun-sdk-<version>-macos-arm64.tar.gz` | AppleClang 16+，macOS 14.0+ | `lib/libyun_sdk.a` | `macosx_14_0_arm64` |
+| Linux x86_64 | `yun-sdk-<version>-linux-x86_64.tar.gz` | GCC 14，glibc ≥ 2.28 | `lib/libyun_sdk.a` | `manylinux_2_28_x86_64` |
+| Linux arm64 | `yun-sdk-<version>-linux-arm64.tar.gz` | GCC 14，glibc ≥ 2.28 | `lib/libyun_sdk.a` | `manylinux_2_28_aarch64` |
+| Windows x86_64 | `yun-sdk-<version>-windows-x86_64.tar.gz` | clang-cl 17+ + MSVC STL，`/MD` | `lib/yun_sdk.lib` | `win_amd64` |
 
-SDK 版本由 [`yun-sdk-version.txt`](../../yun-sdk-version.txt) 固定，当前为 `0.3.0`。
+SDK 版本由 [`yun-sdk-version.txt`](../../yun-sdk-version.txt) 固定；包版本由根目录
+[`VERSION`](../../VERSION) 管理，两者 major.minor 保持一致。
 
 不在支持范围：macOS Intel、Windows arm64、musl Linux、MSVC `cl.exe`、MinGW。
 
@@ -70,7 +71,8 @@ target_link_libraries(yun_python_binding PRIVATE yun::sdk)
 set_target_properties(yun_python_binding PROPERTIES OUTPUT_NAME "_core")
 ```
 
-0.x 下 minor 是 ABI 断点；外部消费方应请求 `find_package(yun 0.3 CONFIG REQUIRED)`。
+0.x 下 minor 是 ABI 断点；外部消费方应请求 SDK 的 major.minor
+（`find_package(yun <major.minor> CONFIG REQUIRED)`）。
 SDK 自带的 `CMakeLists.txt` 用 `HINTS` 指向自身，因此省略版本参数。
 
 `yunConfig.cmake` 导出 `yun::sdk`，携带 include 目录、`cxx_std_20`、
@@ -109,7 +111,7 @@ SDK 自带的 `CMakeLists.txt` 用 `HINTS` 指向自身，因此省略版本参�
 1. `detect_platform()` 得到 `SdkPlatform`；
 2. `_check_toolchain()`：CMake ≥ 3.24；Linux 检查 GCC ≥ 13.2；Windows 检查
    `clang-cl` + `ninja`；
-3. `ensure_sdk(spec=...)` 取得 SDK；
+3. `ensure_sdk(spec=...)` 取得 SDK，并校验其 `VERSION` 与 `yun-sdk-version.txt` 一致；
 4. CMake 配置 `build/yun-sdk-binding`：
 
    | 平台 | 关键参数 |
@@ -144,9 +146,9 @@ SDK 自带的 `CMakeLists.txt` 用 `HINTS` 指向自身，因此省略版本参�
   避免要求 GCC 14 运行库。
 - **Windows 运行时**：SDK 以 `/MD` 构建，消费端必须同样 `/MD`；wheel 不打包
   `MSVCP140.dll` / `VCRUNTIME140.dll`，用户需安装 VC++ 2015-2022 x64 运行库。
-- **Windows 路径**：SDK 0.3.0 的 C++ 侧仍使用窄路径（`std::string` + `std::ifstream`），
+- **Windows 路径**：当前 SDK 的 C++ 侧仍使用窄路径（`std::string` + `std::ifstream`），
   非 ASCII 案例路径会打开失败；`yunpyopt` 在 Windows 上会提前抛出 `ValueError`。
-  当前固定 SDK 0.3.0；宽路径支持留待后续版本单独评估。
+  SDK 版本由 pin 固定；宽路径支持留待后续版本单独评估。
 - **macOS 最低版本**：SDK 部署目标 14.0；wheel tag 取 `macosx_14_0_arm64`。
 - **SDK 不可变**：同一版本不覆盖发布，否则 `SHA256SUMS` 变化影响复现。
 
@@ -155,7 +157,8 @@ SDK 自带的 `CMakeLists.txt` 用 `HINTS` 指向自身，因此省略版本参�
 ## 7. 发布顺序（硬约束）
 
 1. `yun` 发布 `v<version>` SDK Release（四个 tarball + `SHA256SUMS`）；
-2. `yunpyopt` 更新 `yun-sdk-version.txt`，并按版本规则同步升级 `pyproject.toml` 的版本；
+2. `yunpyopt` 更新 `yun-sdk-version.txt` 与根目录 `VERSION`（`pyproject.toml` 由
+   `scripts/version.py` 同步）；
 3. `yunpyopt` 打 `v<version>` tag，触发四平台 wheel 构建与 Release。
 
 SDK 不存在时 `fetch_sdk.py` 报错并提示先运行 `yun` 的 SDK Release workflow。

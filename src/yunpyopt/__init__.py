@@ -5,6 +5,7 @@ carriers, orders, distance matrices, and supporting dictionary types.
 """
 
 from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from yunpyopt.domain.schema import (
@@ -47,10 +48,19 @@ if TYPE_CHECKING:
         solve,
     )
 
+
+def _source_version() -> str:
+    """未安装的源码树回退到根目录 VERSION，避免 __version__ 变成占位值。"""
+    version_file = Path(__file__).resolve().parents[2] / "VERSION"
+    if version_file.is_file():
+        return version_file.read_text(encoding="utf-8").strip()
+    return "0.0.0"
+
+
 try:
     __version__ = version("yunpyopt")
-except PackageNotFoundError:  # pragma: no cover
-    __version__ = "0.0.0"
+except PackageNotFoundError:  # pragma: no cover - 仅未安装的源码树
+    __version__ = _source_version()
 
 _LAZY_SOLVER_EXPORTS = frozenset(
     {

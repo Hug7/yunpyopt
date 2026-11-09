@@ -18,23 +18,9 @@ jobs:
 
       - name: Verify tag, package version and SDK pin
         shell: bash
-        run: |
-          python - <<'PY'
-          import os
-          import tomllib
-          from pathlib import Path
-
-          version = tomllib.loads(Path("pyproject.toml").read_text())["tool"]["poetry"]["version"]
-          sdk = Path("yun-sdk-version.txt").read_text().strip()
-          assert sdk == "0.3.0", f"unexpected SDK pin: {sdk}"
-          assert version.split(".")[:2] == sdk.split(".")[:2], (
-              f"yunpyopt {version} must track yun SDK {sdk} (major.minor)"
-          )
-          if os.environ["GITHUB_REF"].startswith("refs/tags/"):
-              tag = os.environ["GITHUB_REF_NAME"]
-              assert tag == f"v{version}", f"tag {tag} != v{version}"
-          print("version:", version, "sdk:", sdk)
-          PY
+        # 版本规则集中在 scripts/version.py check：VERSION 格式、pyproject 同步、
+        # SDK major.minor、tag 一致性都在这里校验，workflow 不保存版本字面量。
+        run: python scripts/version.py check
 
   build-macos:
     name: Build (macos-arm64)

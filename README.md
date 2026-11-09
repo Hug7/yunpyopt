@@ -16,21 +16,22 @@
 
 ## 安装
 
-`yunpyopt` 0.3.0 通过 GitHub Release 分发（PyPI 尚未启用），按平台选择对应 wheel。
-该版本的二进制扩展基于 `yun` SDK 0.3.0 构建；包版本与 SDK 的 major.minor 保持同步。
+`yunpyopt` 通过 GitHub Release 分发（PyPI 尚未启用），按平台选择对应 wheel。
+包版本以根目录 [`VERSION`](VERSION) 为准；二进制扩展基于 `yun` SDK 构建，SDK 版本由
+[`yun-sdk-version.txt`](yun-sdk-version.txt) 固定，两者 major.minor 保持同步。
 
 ```bash
 # macOS arm64
-pip install https://github.com/Hug7/yunpyopt/releases/download/v0.3.0/yunpyopt-0.3.0-cp311-cp311-macosx_14_0_arm64.whl
+pip install https://github.com/Hug7/yunpyopt/releases/download/v<version>/yunpyopt-<version>-cp311-cp311-macosx_14_0_arm64.whl
 
 # Linux x86_64
-pip install https://github.com/Hug7/yunpyopt/releases/download/v0.3.0/yunpyopt-0.3.0-cp311-cp311-manylinux_2_28_x86_64.whl
+pip install https://github.com/Hug7/yunpyopt/releases/download/v<version>/yunpyopt-<version>-cp311-cp311-manylinux_2_28_x86_64.whl
 
 # Linux arm64
-pip install https://github.com/Hug7/yunpyopt/releases/download/v0.3.0/yunpyopt-0.3.0-cp311-cp311-manylinux_2_28_aarch64.whl
+pip install https://github.com/Hug7/yunpyopt/releases/download/v<version>/yunpyopt-<version>-cp311-cp311-manylinux_2_28_aarch64.whl
 
 # Windows x64
-pip install https://github.com/Hug7/yunpyopt/releases/download/v0.3.0/yunpyopt-0.3.0-cp311-cp311-win_amd64.whl
+pip install https://github.com/Hug7/yunpyopt/releases/download/v<version>/yunpyopt-<version>-cp311-cp311-win_amd64.whl
 ```
 
 Windows 需要安装 **Microsoft Visual C++ 2015-2022 Redistributable (x64)**；wheel 不打包
@@ -115,7 +116,7 @@ Windows 上案例路径必须是纯 ASCII；否则 `Solver` 会抛出带说明�
 
 | key | 文件 | 说明 |
 | --- | --- | --- |
-| `plan_summary` | `PlanSummary.json` | 规划结果汇总（0.3.0 新增） |
+| `plan_summary` | `PlanSummary.json` | 规划结果汇总（新增） |
 | `loads` | `Loads.json` | 车次与路径 |
 | `locations` | `LoadLocations.json` | 位置装载信息 |
 | `unassigned` | `UnassignedCargoOrders.json` | 未分配订单 |
@@ -139,8 +140,8 @@ loads = json.loads(Path(result["loads"]).read_text(encoding="utf-8"))
 - CPython 3.11
 - CMake ≥ 3.24
 - Poetry 2.5+
-- `yun` 0.3.0 SDK：`scripts/fetch_sdk.py` 会从 GitHub Release 下载并校验；离线/本地开发可用
-  `YUN_SDK_DIR` 指向已解压的 SDK
+- `yun` SDK：`scripts/fetch_sdk.py` 会从 GitHub Release 下载并校验；离线/本地开发可用
+  `YUN_SDK_DIR` 指向已解压的 SDK。版本见 [`yun-sdk-version.txt`](yun-sdk-version.txt)。
 
 ```bash
 git clone https://github.com/Hug7/yunpyopt.git
@@ -153,11 +154,13 @@ YUNPYOPT_REQUIRE_CORE=1 poetry run pytest -v
 `yunpyopt._core`，再把产物复制到 `src/yunpyopt/`。SDK 版本固定在
 [`yun-sdk-version.txt`](yun-sdk-version.txt)。
 
-`yun` SDK 0.3.0 与 0.2.0 ABI 不兼容：更新 pin 后必须重新执行
+`yun` SDK 0.3.x 与 0.2.x ABI 不兼容：更新 pin 后必须重新执行
 `python scripts/build_ext.py`（或重新 `poetry install`）重建扩展。
 
 版本策略：`yun` SDK 的 major.minor 变化时，`yunpyopt` 的 major.minor 必须同步升级；
-只变 patch（如 `0.3.0 → 0.3.1`）不强制。详见 [发布手册](docs/release.md)。
+只变 patch（如 `0.3.0 → 0.3.1`）不强制。包版本只写在根目录 [`VERSION`](VERSION)，
+升级用 `python scripts/version.py bump patch`。详见 [版本管理](docs/versioning.md) 与
+[发布手册](docs/release.md)。
 
 ### macOS（arm64，14.0+）
 
@@ -234,14 +237,15 @@ poetry run mypy src
 YUNPYOPT_REQUIRE_CORE=1 poetry run pytest -v
 ```
 
-发布流程见 [docs/release.md](docs/release.md)，SDK 依赖说明见
+发布流程见 [docs/release.md](docs/release.md)，版本规则见
+[docs/versioning.md](docs/versioning.md)，SDK 依赖说明见
 [docs/design/yun-sdk-dependency.md](docs/design/yun-sdk-dependency.md)。
 
 ## 已知限制
 
 - 仅 CPython 3.11；3.12/3.13 尚未提供 wheel。
 - 不提供 macOS Intel、Windows arm64、musl Linux 产物。
-- Windows 版当前不支持非 ASCII 案例路径：底层 SDK 0.3.0 仍使用窄路径，`Solver` 会抛出带
+- Windows 版当前不支持非 ASCII 案例路径：底层 SDK 仍使用窄路径，`Solver` 会抛出带
   说明的 `ValueError`；请把案例目录放到纯英文路径，宽路径支持留待后续版本单独评估。
 
 ## 许可证

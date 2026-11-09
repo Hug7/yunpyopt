@@ -15,7 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from console_utf8 import use_utf8_stdio  # noqa: E402
-from fetch_sdk import ensure_sdk  # noqa: E402
+from fetch_sdk import ensure_sdk, resolve_version  # noqa: E402
 from sdk_platform import SdkPlatform, detect_platform  # noqa: E402
 
 use_utf8_stdio()
@@ -128,12 +128,25 @@ def _smoke_import(target: Path) -> None:
     _run([sys.executable, "-c", code])
 
 
+def _sdk_version(sdk: Path, expected: str) -> str:
+    path = sdk / "VERSION"
+    if not path.is_file():
+        raise SystemExit(f"SDK 缺少 VERSION 文件: {path}")
+    version = path.read_text(encoding="utf-8").strip()
+    if version != expected:
+        raise SystemExit(
+            f"SDK 版本 {version} 与 yun-sdk-version.txt ({expected}) 不一致；"
+            "请更新 pin，或让 YUN_SDK_DIR 指向对应版本的 SDK"
+        )
+    return version
+
+
 def build() -> None:
     spec = detect_platform()
     _check_toolchain(spec)
 
     sdk = ensure_sdk(spec=spec)
-    sdk_version = (sdk / "VERSION").read_text(encoding="utf-8").strip()
+    sdk_version = _sdk_version(sdk, resolve_version())
 
     if BUILD_DIR.exists():
         shutil.rmtree(BUILD_DIR)

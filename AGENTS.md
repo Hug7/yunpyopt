@@ -20,12 +20,15 @@
 
 ## 3. yun SDK 与 yunpyopt 版本同步
 
-`yun-sdk-version.txt` 的 **major.minor**（前两位）发生变化时，必须同步升级
-`pyproject.toml` 中的 `version`，并让 `yunpyopt` 的 major.minor 与 SDK 保持一致：
+`yun-sdk-version.txt` 的 **major.minor**（前两位）发生变化时，必须同步升级根目录
+`VERSION` 中的包版本，并让 `yunpyopt` 的 major.minor 与 SDK 保持一致。`pyproject.toml`
+的 `version` 是派生副本，只由 `python scripts/version.py set/bump` 改写：
 
 - SDK `0.2.x → 0.3.0`：`yunpyopt` 必须升到 `0.3.x`；
 - SDK 只变 patch（`0.3.0 → 0.3.1`）不触发强制升级，`yunpyopt` 可按需发 patch；
-- 升级时同步更新 `CHANGELOG.md`、README 安装示例与 `docs/release.md` 中的包版本和 URL。
+- 升级时同步更新 `CHANGELOG.md`；README/docs 不写死当前版本，wheel 名与下载 URL
+  使用 `<version>`、`<sdk-version>` 占位符。
 
-该规则由 `tests/test_version_policy.py` 与 `.github/workflows/release.yml` 的 `version`
-job 校验；版本不一致时 CI/Release 直接失败。
+该规则由 `scripts/version.py check` 校验，CI 的 `quality` job 与 `release.yml` 的
+`version` job 都会运行；`tests/test_version_policy.py` 覆盖脚本行为。版本不一致时
+CI/Release 直接失败。
