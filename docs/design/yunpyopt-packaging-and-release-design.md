@@ -41,9 +41,11 @@ yunpyopt/
 │       └── release.yml                 # tag v* / 手动：四平台构建 + 聚合 Release
 ├── docs/
 │   ├── design/
-│   └── release.md
+│   ├── release.md
+│   └── versioning.md                   # 版本真源、校验与升级规则
 ├── scripts/
 │   ├── sdk_platform.py                 # 平台事实的唯一来源
+│   ├── version.py                      # 版本 show/check/bump/set
 │   ├── build_ext.py                    # PEP 517 build hook
 │   ├── fetch_sdk.py                    # 四平台 SDK 下载/校验/缓存
 │   ├── fix_wheel_tag.py                # macOS 修 minos；Linux auditwheel；Windows 校验
@@ -65,9 +67,10 @@ yunpyopt/
 │   ├── test_wheel_tag.py
 │   ├── test_version_policy.py
 │   └── test_*.py（领域模型）
-├── pyproject.toml
+├── pyproject.toml                       # version 由 scripts/version.py 同步
 ├── poetry.lock
-├── yun-sdk-version.txt
+├── VERSION                             # 包版本真源
+├── yun-sdk-version.txt                 # yun SDK 依赖 pin
 └── README.md
 ```
 
@@ -77,7 +80,7 @@ yunpyopt/
 
 | 依赖 | 来源 | 版本 |
 | --- | --- | --- |
-| `yun` 求解器 | GitHub Release 预编译 SDK | `yun-sdk-version.txt`（0.3.0） |
+| `yun` 求解器 | GitHub Release 预编译 SDK | `yun-sdk-version.txt`（pin） |
 | `pybind11` | PEP 517 `build-system.requires` | `>=2.13,<4` |
 | `poetry-core` | PEP 517 `build-system.requires` | `>=2.5,<3` |
 | `cmake` | 宿主机 / CI | `>=3.24` |
@@ -86,7 +89,8 @@ yunpyopt/
 
 SDK 获取优先级、覆盖变量与校验见 [yun SDK 依赖](yun-sdk-dependency.md)。
 
-版本同步：`yunpyopt` 的 major.minor 必须与 `yun-sdk-version.txt` 的 major.minor 一致。
+版本同步：包版本只写在根目录 `VERSION`，`pyproject.toml` 由 `scripts/version.py`
+同步；`yunpyopt` 的 major.minor 必须与 `yun-sdk-version.txt` 的 major.minor 一致。
 SDK 的 major/minor 变化时同步 bump 包版本（patch 变化不强制）；发布 CI 会校验。
 
 ---
@@ -97,7 +101,7 @@ SDK 的 major/minor 变化时同步 bump 包版本（patch 变化不强制）；
 
 1. `detect_platform()` 返回 `SdkPlatform`；
 2. `_check_toolchain()`：CMake；Linux GCC ≥ 13.2；Windows clang-cl + Ninja；
-3. `ensure_sdk(spec=...)`；
+3. `ensure_sdk(spec=...)`，并校验 SDK 的 `VERSION` 与 `yun-sdk-version.txt` 一致；
 4. CMake 配置 `build/yun-sdk-binding`：
    - macOS：`CMAKE_OSX_DEPLOYMENT_TARGET=14.0`、`CMAKE_OSX_ARCHITECTURES=arm64`；
    - Linux：PIC、`CMAKE_CXX_COMPILER=$CXX`、`-static-libstdc++ -static-libgcc`；
@@ -181,8 +185,9 @@ wheel 构建所用的 SDK 版本与平台；源码树未构建时为 `"unknown"`
 | `tests/test_solver_api.py` | `Solver` 复用/context manager、`SDK_VERSION`、`plan_summary` |
 | `tests/test_sdk_platform.py` | 四平台映射与不支持平台 |
 | `tests/test_fetch_sdk.py` | SDK 命名/URL/本地目录/平台库文件 |
-| `tests/test_build_ext.py` | macOS/Linux/Windows CMake 参数 |
+| `tests/test_build_ext.py` | macOS/Linux/Windows CMake 参数、SDK 版本与 pin 校验 |
 | `tests/test_wheel_tag.py` | macOS minos 取整、Python/ABI tag 解析 |
+| `tests/test_version_policy.py` | `VERSION`/`pyproject.toml`/SDK pin/tag 一致性；`set`/`bump` 写入 |
 | `tests/test_*.py`（领域模型） | 各 CSV 模型的解析与 `__repr__` |
 
 夹具 `tests/data/c1_2_1/` 由 SINTEF Homberger `C1_2_1` 转换生成：201 个位置、200 张订单、
@@ -198,7 +203,7 @@ CI 设置 `YUNPYOPT_REQUIRE_CORE=1`，缺扩展直接失败，避免“全 skip 
 
 | job | runner | 内容 |
 | --- | --- | --- |
-| `quality` | `ubuntu-24.04` | `_core*`/`_build_info.py` 未提交；ruff、mypy、`poetry check --lock` |
+| `quality` | `ubuntu-24.04` | `_core*`/`_build_info.py` 未提交；`scripts/version.py check`；ruff、mypy、`poetry check --lock` |
 | `test-macos` | `macos-15` | 构建/校验 wheel → clean venv 安装 → pytest |
 | `test-linux` | `ubuntu-24.04` / `ubuntu-24.04-arm` + manylinux_2_28 容器 | 同上 |
 | `test-windows` | `windows-2022` | clang-cl + Ninja + MSVC 环境；同上 |
@@ -208,8 +213,8 @@ CI 设置 `YUNPYOPT_REQUIRE_CORE=1`，缺扩展直接失败，避免“全 skip 
 
 ### 7.2 `release.yml`
 
-- `version` job：校验 tag 与 `pyproject.toml` 版本、`yun-sdk-version.txt`，以及包版本与
-  SDK 的 major.minor 是否同步；
+- `version` job：运行 `scripts/version.py check`，校验 `VERSION`、`pyproject.toml`、
+  `yun-sdk-version.txt` 与 tag；
 - `build-macos` / `build-linux`（x86_64/arm64 matrix）/ `build-windows`：构建并上传 artifact；
 - `release` job：下载 `wheel-*`，校验四个 wheel，生成 `SHA256SUMS`，创建 GitHub Release；
 - `workflow_dispatch` 只构建 artifact，不创建 Release；
@@ -224,8 +229,9 @@ CI 设置 `YUNPYOPT_REQUIRE_CORE=1`，缺扩展直接失败，避免“全 skip 
 
 ## 8. 发布流程
 
-1. 按版本同步规则更新 `pyproject.toml` 版本（major.minor 与 SDK 一致）与 `CHANGELOG.md`；
-2. 确认 `yun-sdk-version.txt` 指向已发布 SDK；
+1. 用 `python scripts/version.py bump minor`（或 `patch`）更新 `VERSION` 与
+   `pyproject.toml`，并在 `CHANGELOG.md` 记录当前版本；
+2. 确认 `yun-sdk-version.txt` 指向已发布 SDK，且 major.minor 与 `VERSION` 一致；
 3. 打 tag `v<version>` 并 push，触发 `release.yml`；
 4. 从 GitHub Release 下载四个 wheel，按 [发布手册](../release.md) 验证。
 
@@ -239,9 +245,8 @@ CI 设置 `YUNPYOPT_REQUIRE_CORE=1`，缺扩展直接失败，避免“全 skip 
 - **Windows**：clang-cl + `/MD`；用户需 VC++ 2015-2022 x64 运行库。
 - **macOS**：部署目标 14.0；wheel tag `macosx_14_0_arm64`。
 - **ABI**：SDK 同编译器家族；升级 SDK 必须重建扩展。
-- **版本同步**：`yunpyopt` 的 major.minor 与 SDK pin 的 major.minor 保持一致；SDK
-  major/minor 变化时必须同步升级包版本，patch 变化不强制。
+- **版本同步**：包版本只写在根目录 `VERSION`；`yunpyopt` 的 major.minor 与 SDK pin 的
+  major.minor 保持一致；SDK major/minor 变化时必须同步升级包版本，patch 变化不强制。
 - **SDK 不可变**：同一版本不覆盖发布。
 - **Windows 非 ASCII 路径**：当前不支持；`Solver` 在 Windows 上检测到非 ASCII 案例路径会抛出
-  `ValueError`。当前固定使用 `yun` SDK 0.3.0，其窄路径限制仍未修复；宽路径支持留待后续
-  版本单独评估，不在 0.3.0 发布范围内。
+  `ValueError`。当前 SDK 的窄路径限制仍未修复；宽路径支持留待后续版本单独评估。

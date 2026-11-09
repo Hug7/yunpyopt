@@ -9,6 +9,7 @@ import pytest
 from yunpyopt import SDK_PLATFORM, SDK_VERSION, Solver
 
 _CASE_DIR = Path(__file__).resolve().parent / "data" / "c1_2_1"
+_SDK_PIN = Path(__file__).resolve().parents[1] / "yun-sdk-version.txt"
 
 
 @pytest.fixture
@@ -19,7 +20,7 @@ def case_dir(tmp_path: Path) -> Path:
 
 
 def test_build_info_is_available():
-    assert SDK_VERSION == "0.3.0"
+    assert SDK_VERSION == _SDK_PIN.read_text(encoding="utf-8").strip()
     assert SDK_PLATFORM in {
         "macos-arm64",
         "linux-x86_64",

@@ -3,9 +3,11 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
-from build_ext import _cmake_configure_args  # noqa: E402
+from build_ext import _cmake_configure_args, _sdk_version  # noqa: E402
 from sdk_platform import SdkPlatform  # noqa: E402
 
 SDK = Path("/sdk")
@@ -53,3 +55,16 @@ def test_windows_args_use_ninja_and_clang_cl():
     assert "-G" in args and "Ninja" in args
     assert "-DCMAKE_CXX_COMPILER=clang-cl" in args
     assert "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL" in args
+
+
+def test_sdk_version_accepts_matching_pin(tmp_path: Path):
+    (tmp_path / "VERSION").write_text("0.3.1\n", encoding="utf-8")
+
+    assert _sdk_version(tmp_path, "0.3.1") == "0.3.1"
+
+
+def test_sdk_version_rejects_mismatched_pin(tmp_path: Path):
+    (tmp_path / "VERSION").write_text("0.3.0\n", encoding="utf-8")
+
+    with pytest.raises(SystemExit, match="0.3.1"):
+        _sdk_version(tmp_path, "0.3.1")

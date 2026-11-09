@@ -4,6 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "yunpyopt"
+# 版本真源是根目录 VERSION；这行由 scripts/version.py 同步，不要手改。
 version = "0.3.0"
 description = "Python caller for the project \"yun\" — domain models and solver binding for logistics optimization on macOS, Linux and Windows."
 authors = ["yunpyopt contributors"]

@@ -75,8 +75,7 @@ class Solver:
         self._case_dir = os.path.abspath(os.fspath(case_dir))
         if sys.platform == "win32" and not self._case_dir.isascii():
             raise ValueError(
-                "Windows 版当前仅支持 ASCII 案例路径；请把案例目录移动到纯英文路径。"
-                "当前固定使用 yun SDK 0.3.0，其窄路径限制仍未修复。"
+                "Windows 版当前仅支持 ASCII 案例路径；请把案例目录移动到纯英文路径。当前 SDK 的窄路径限制仍未修复。"
             )
         self._log_dir = os.fspath(log_dir) if log_dir is not None else ""
         self._log_level = log_level
@@ -154,8 +153,7 @@ def solve(
         key 为 ``plan_summary`` / ``loads`` / ``locations`` / ``unassigned`` /
         ``infeasible``，值为绝对路径；本次未产出的 key 为 ``None``。
 
-        0.3.0 起新增 ``plan_summary``，指向 ``PlanSummary.json``；本次未产出时为
-        ``None``。
+        ``plan_summary`` 指向 ``PlanSummary.json``；本次未产出时为 ``None``。
 
         注意 ``loads`` 为 ``None`` 不代表失败：precheck 发现不可解订单时会拦截
         整条链路，此时 ``infeasible`` 有值而 ``loads`` 为 ``None``。

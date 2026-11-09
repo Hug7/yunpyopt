@@ -9,6 +9,10 @@
 
 ### 变更（Changed）
 
+- 版本号统一由根目录 `VERSION` 管理：新增 `scripts/version.py`（`show` / `check` /
+  `set` / `bump`），`pyproject.toml` 由脚本同步，CI 与 Release 通过 `check` 校验
+  `VERSION`、包版本、SDK pin 与 tag；README/docs 不再写死当前版本
+- `yun-sdk-version.txt` 升级到 `0.3.1`（patch，不强制升级包版本）
 - `yun-sdk-version.txt` 升级到 `0.3.0`，`yunpyopt` 版本同步升级到 `0.3.0`；
   `yun` SDK 0.3.0 与 0.2.0 ABI 不兼容，扩展需重新构建
 - 新增版本策略：`yun` SDK 的 major.minor 变化时，`yunpyopt` 的 major.minor 同步升级；patch 变化不强制
