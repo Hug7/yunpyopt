@@ -5,6 +5,14 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/spec/v2.0.0.html)。
 
+## [0.4.0] — Unreleased
+
+### 变更（Changed）
+
+- `yun-sdk-version.txt` 升级到 `0.4.0`；按版本策略（SDK major.minor 变化）`yunpyopt`
+  同步升级到 `0.4.0`，扩展需基于新的 `yun` SDK 重新构建
+- 更新 `tests/data/c1_2_1` 求解夹具以适配 SDK 0.4.0（参数、车辆、收费与距离矩阵）
+
 ## [0.3.0] — Unreleased
 
 ### 变更（Changed）
