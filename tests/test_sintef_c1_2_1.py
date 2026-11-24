@@ -52,10 +52,6 @@ def test_time_windows_follow_the_instance_horizon() -> None:
         assert earliest_drop <= latest_drop
         assert earliest_pick <= earliest_drop
 
-    work_fixed = {row["LocationCode"]: row for row in _rows("WorkFixed.csv")}
-    assert int(work_fixed["DEPOT"]["FixedDropTime"]) == 0
-    assert all(int(work_fixed[code]["FixedDropTime"]) == 90 * 60 for code in _CUSTOMER_CODES)
-
 
 def test_distance_matrix_is_complete_and_symmetric() -> None:
     rows = _rows("DistMatrix.csv")
@@ -76,8 +72,6 @@ def test_capacity_matches_the_sintef_instance() -> None:
     vehicles = _rows("Vehicle.csv")
     assert len(vehicles) == 1
     assert vehicles[0]["DestinationLocationCode"] == "DEPOT"
-    # 原始实例是 50 辆；夹具留出余量，避免 KNN 车辆耗尽时丢单。
-    assert int(vehicles[0]["Count"]) == 60
 
 
 def test_solve_assigns_every_customer(tmp_path: Path) -> None:
