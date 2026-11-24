@@ -1,7 +1,8 @@
 start_time: 2026-01-01 00:00
-end_time: 2026-01-01 22:31
+end_time: 2026-02-26 07:00
 strategy_file: Strategy.lua
 load_unload_policy: FILO
+hard_constr_precheck: true
 soft_constraints:
   - code: Distance
-    params: {dist_factor: 1}
+    params: {dist_factor: 0.001}
